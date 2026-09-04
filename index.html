@@ -1,0 +1,2711 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+</head>
+<body>
+
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&family=Josefin+Sans:wght@400;500;600&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #F5F3EF; }
+  a { color: inherit; text-decoration: none; }
+  a:hover { color: #55504a; }
+  .wei-img { position: relative; overflow: hidden; background: #2A2724; }
+  .wei-vlink { position: relative; }
+  .wei-vlink::after { content: ''; position: absolute; left: 0; bottom: -3px; width: 0; height: 0.5px; background: currentColor; transition: width 0.4s ease; }
+  .wei-vlink:hover::after { width: 100%; }
+  /* No frame around the photos — drop the component's default grey fill so filled slots are just the image. */
+  upload-slot { display: block; }
+  .page-view { display: none; }
+  .page-view.active { display: block; }
+
+  /* ── Projects 页面 ── */
+  .proj-subnav-link {
+    font-family: 'Inter', sans-serif;
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: #55504a;
+    font-weight: 500;
+    padding-bottom: 4px;
+    border-bottom: 1.5px solid transparent;
+  }
+  .proj-subnav-link.active { color: #1c1a17; border-bottom-color: #1c1a17; }
+  .proj-series { border-top: 1px solid rgba(28,26,23,0.12); }
+  .proj-series-header { padding: 56px 40px 28px; }
+  .proj-series-header h2 {
+    font-family: 'Josefin Sans', sans-serif;
+    font-size: 40px;
+    font-weight: 400;
+    letter-spacing: -0.01em;
+    margin-bottom: 10px;
+  }
+  .proj-series-header p {
+    font-size: 15px;
+    color: #55504a;
+    font-weight: 300;
+    max-width: 420px;
+    line-height: 1.5;
+  }
+  .proj-eyebrow {
+    font-family: 'Inter', sans-serif;
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    font-weight: 500;
+    color: #55504a;
+    margin-bottom: 14px;
+  }
+  .jgallery {
+    padding: 0 40px 60px;
+  }
+  /* Static, JS-independent gallery layout (Belfast and future series).
+     Real <img>/<video> tags live directly in the HTML — media always
+     renders even if no JS runs at all. Pure-CSS multi-column flow
+     (not a true shortest-column masonry — that upgrade can be layered
+     on top later via JS re-ordering these same real elements, without
+     which being a precondition for the media itself to appear). */
+  .gallery-static {
+    padding: 0 40px 60px;
+    columns: 260px;
+    column-gap: 3px;
+  }
+  .gallery-static img,
+  .gallery-static video {
+    width: 100%;
+    display: block;
+    margin-bottom: 3px;
+    break-inside: avoid;
+    background: #ECE9E3;
+  }
+  /* Waterfall (Pinterest-style column) layout — matches the same algorithm
+     the legacy gallery script already used (fixed ~260px columns, each
+     item placed into whichever column is currently shortest). Applied by
+     JS once each item's real aspect ratio is known. Falls back to the
+     plain multi-column flow above if JS never runs — media is still
+     fully visible either way, just less evenly balanced. */
+  .gallery-static.gallery-waterfall {
+    columns: unset;
+    display: flex;
+    gap: 3px;
+    align-items: flex-start;
+  }
+  .gallery-col {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    flex-shrink: 0;
+  }
+  .gallery-static.gallery-waterfall img,
+  .gallery-static.gallery-waterfall video {
+    width: 100%;
+    height: 100%;
+    margin-bottom: 0;
+    break-inside: unset;
+    object-fit: cover;
+  }
+  .gallery-more-toggle {
+    display: none;
+    width: fit-content;
+    margin: 12px auto 40px;
+    font-family: 'Inter', sans-serif;
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    font-weight: 500;
+    color: #55504a;
+    cursor: pointer;
+    background: none;
+    border: none;
+    border-bottom: 1px solid rgba(28,26,23,0.25);
+    padding: 0 0 2px;
+  }
+  .gallery-more-toggle:hover { color: #1c1a17; border-color: #1c1a17; }
+  .jgallery-masonry {
+    display: flex;
+    gap: 3px;
+    align-items: flex-start;
+  }
+  .jgallery-col {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    flex-shrink: 0;
+  }
+  .jgallery-toggle {
+    display: block;
+    margin: 18px auto 0;
+    font-family: 'Inter', sans-serif;
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    font-weight: 500;
+    color: #55504a;
+    background: none;
+    border: none;
+    border-bottom: 1px solid rgba(28,26,23,0.25);
+    padding: 0 0 2px;
+    cursor: pointer;
+  }
+  .jgallery-toggle:hover { color: #1c1a17; border-color: #1c1a17; }
+  .jtile {
+    position: relative;
+    overflow: hidden;
+    background: #ECE9E3;
+    cursor: grab;
+  }
+  .jtile.dragging { opacity: 0.35; }
+  .jtile.drop-before { box-shadow: inset 3px 0 0 #1c1a17; }
+  .jtile.drop-after { box-shadow: inset -3px 0 0 #1c1a17; }
+  .jtile img, .jtile video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    pointer-events: none;
+  }
+  .jtile .jtile-remove {
+    position: absolute;
+    top: 6px; right: 6px;
+    width: 22px; height: 22px;
+    border-radius: 50%;
+    background: rgba(28,26,23,0.65);
+    color: #f5f3ef;
+    border: none;
+    cursor: pointer;
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+    line-height: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.15s;
+    z-index: 3;
+  }
+  .jtile:hover .jtile-remove { opacity: 1; }
+  /* Bugs 系列视频专属:静止时显示的封面图,悬停播放时淡出 */
+  .jtile-cover {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    pointer-events: none;
+    z-index: 2;
+    transition: opacity 0.2s;
+  }
+  .jtile.playing .jtile-cover { opacity: 0; }
+  .jtile .jtile-cover-btn {
+    position: absolute;
+    top: 6px; left: 6px;
+    font-family: 'Inter', sans-serif;
+    font-size: 9px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #f5f3ef;
+    background: rgba(28,26,23,0.65);
+    border: none;
+    border-radius: 3px;
+    padding: 4px 7px;
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity 0.15s;
+    z-index: 3;
+  }
+  .jtile:hover .jtile-cover-btn { opacity: 1; }
+  .jtile-add {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #ECE9E3;
+    border: 1px dashed rgba(28,26,23,0.25);
+    color: #55504a;
+    font-family: 'Inter', sans-serif;
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+  .jtile-add:hover { color: #1c1a17; border-color: rgba(28,26,23,0.4); }
+  .jtile-busy {
+    position: absolute; inset: 0;
+    display: flex; align-items: center; justify-content: center;
+    background: rgba(236,233,227,0.9);
+    font-family: 'Inter', sans-serif;
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #55504a;
+    z-index: 4;
+  }
+  .jgallery-dragover { outline: 2px dashed rgba(28,26,23,0.35); outline-offset: -8px; }
+  /* 首页可直接编辑的文字(比如 Latest observations 每张照片下方的说明)——
+     平时不显眼,悬停/聚焦编辑时才露出一点提示,不破坏原有排版的克制感。 */
+  .editable-text {
+    cursor: text;
+    border-radius: 2px;
+    outline: none;
+    transition: background-color 0.15s;
+  }
+  .editable-text:hover { background-color: rgba(28,26,23,0.05); }
+  .editable-text:focus { background-color: rgba(28,26,23,0.07); box-shadow: 0 0 0 1px rgba(28,26,23,0.15); }
+
+  /* ── Responsive: mobile & tablet ──
+     Production requirement — the original prototype had no responsive
+     breakpoints at all. These rules only ever apply below 900px/600px;
+     desktop appearance above that is completely untouched. Overrides use
+     !important because the layout above is built with inline style="",
+     which normal stylesheet rules can't out-specificity without it — no
+     existing inline style values are edited, these are additive-only. */
+  @media (max-width: 900px) {
+    .resp-hero { grid-template-columns: 1fr !important; }
+    .resp-hero-h1 { letter-spacing: -0.03em !important; }
+    .resp-row { flex-direction: column !important; }
+    .resp-sidebar { width: 100% !important; flex-shrink: 1 !important; }
+    .resp-homesplit { grid-template-columns: 1fr !important; }
+  }
+  @media (max-width: 600px) {
+    .resp-obsgrid { grid-template-columns: repeat(2, 1fr) !important; }
+  }
+  @media (max-width: 480px) {
+    .resp-nav { gap: 12px !important; }
+  }
+</style>
+
+<div style="min-height: 100vh; background: #F5F3EF; color: #1c1a17; font-family: 'Poppins', sans-serif; font-weight: 300; -webkit-font-smoothing: antialiased;">
+
+  <!-- Header:全站共用,锁定在顶部——不管在首页、Projects还是以后的Journal/About页面,
+       任何滚动位置都能点 WEI 直接回首页。 -->
+  <header style="display: flex; align-items: center; justify-content: space-between; padding: 26px 40px; border-bottom: 1px solid rgba(28,26,23,0.1); position: sticky; top: 0; background: #F5F3EF; z-index: 30;">
+    <a href="#" data-goto-page="home" class="wei-vlink" style="font-size: 17px; letter-spacing: 0.32em; text-transform: uppercase; font-weight: 500;">Wei</a>
+    <nav class="resp-nav" style="display: flex; align-items: center; gap: 40px;">
+      <a href="#" data-goto-page="projects" class="wei-vlink" style="font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase; font-weight: 500;">Projects</a>
+      <a href="#journal" class="wei-vlink" style="font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase; font-weight: 500;">Journal</a>
+      <a href="#about" class="wei-vlink" style="font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase; font-weight: 500;">About</a>
+      <span style="width: 20px; height: 20px; border-radius: 50%; background: #1c1a17; display: inline-block;"></span>
+    </nav>
+  </header>
+
+  <!-- ══════ 首页 ══════ -->
+  <div id="page-home" class="page-view active">
+
+  <!-- Hero -->
+  <section class="resp-hero" style="display: grid; grid-template-columns: 0.85fr 1.15fr; gap: 56px; align-items: center; padding: 64px 40px 56px;">
+    <div>
+      <h1 class="resp-hero-h1" style="font-family: 'Josefin Sans', sans-serif; font-size: 44px; line-height: 1.2; font-weight: 400; letter-spacing: -0.01em; margin-bottom: 26px; text-wrap: pretty;"><span style="white-space: nowrap;">I spy with my littl<svg class="eye-e" viewBox="0 0 100 90" style="width:0.74em;height:0.62em;display:inline-block;vertical-align:-0.04em;" xmlns="http://www.w3.org/2000/svg"><path d="M5,45 Q50,6 95,45 Q50,84 5,45 Z" fill="none" stroke="currentColor" stroke-width="7" stroke-linejoin="round" stroke-linecap="round"/><circle cx="50" cy="46" r="12" fill="currentColor"/><path d="M64,17 L72,4" stroke="currentColor" stroke-width="6" stroke-linecap="round"/><path d="M76,23 L88,13" stroke="currentColor" stroke-width="6" stroke-linecap="round"/><path d="M85,33 L99,28" stroke="currentColor" stroke-width="6" stroke-linecap="round"/></svg></span> <svg class="eye-e" viewBox="0 0 100 90" style="width:0.74em;height:0.62em;display:inline-block;vertical-align:-0.04em;" xmlns="http://www.w3.org/2000/svg"><path d="M5,45 Q50,6 95,45 Q50,84 5,45 Z" fill="none" stroke="currentColor" stroke-width="7" stroke-linejoin="round" stroke-linecap="round"/><circle cx="50" cy="46" r="12" fill="currentColor"/><path d="M64,17 L72,4" stroke="currentColor" stroke-width="6" stroke-linecap="round"/><path d="M76,23 L88,13" stroke="currentColor" stroke-width="6" stroke-linecap="round"/><path d="M85,33 L99,28" stroke="currentColor" stroke-width="6" stroke-linecap="round"/></svg>y<svg class="eye-e" viewBox="0 0 100 90" style="width:0.74em;height:0.62em;display:inline-block;vertical-align:-0.04em;" xmlns="http://www.w3.org/2000/svg"><path d="M5,45 Q50,6 95,45 Q50,84 5,45 Z" fill="none" stroke="currentColor" stroke-width="7" stroke-linejoin="round" stroke-linecap="round"/><circle cx="50" cy="46" r="12" fill="currentColor"/><path d="M64,17 L72,4" stroke="currentColor" stroke-width="6" stroke-linecap="round"/><path d="M76,23 L88,13" stroke="currentColor" stroke-width="6" stroke-linecap="round"/><path d="M85,33 L99,28" stroke="currentColor" stroke-width="6" stroke-linecap="round"/></svg></h1>
+      <p style="font-size: 15px; line-height: 1.6; color: #55504a; font-weight: 300; max-width: 320px; margin-bottom: 30px;">Photographs, videos and ongoing observations by Wei.</p>
+      <a href="#work" class="wei-vlink" style="font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; font-weight: 500; display: inline-flex; align-items: center; gap: 8px;">Enter the archive <span>&darr;</span></a>
+    </div>
+    <video id="hero-01" data-ar="16/8.4" src="assets/featured/hero.mp4" autoplay muted loop playsinline style="width:100%; height:auto; aspect-ratio:16/8.4; object-fit: cover; object-position: center center; background: #ECE9E3;"></video>
+  </section>
+
+  <!-- Projects -->
+  <main id="work" style="padding: 0 40px;">
+
+    <div style="display: flex; align-items: baseline; justify-content: space-between; padding: 30px 0 20px; border-top: 1px solid rgba(28,26,23,0.1);">
+      <div style="font-size: 12px; letter-spacing: 0.18em; text-transform: uppercase; font-weight: 600;">Projects</div>
+      <div style="font-size: 14px; color: #55504a; font-weight: 300;">Different ways of looking.</div>
+    </div>
+
+    <!-- Row 1: Belfast -->
+    <section class="resp-row" style="display: flex; border-top: 1px solid rgba(28,26,23,0.12); min-height: 210px;">
+      <div class="resp-sidebar" style="width: 260px; flex-shrink: 0; background: #ECE9E3; display: flex; flex-direction: column; justify-content: center; padding: 40px 34px;">
+        <h2 style="font-size: 26px; font-weight: 400; letter-spacing: 0.01em; margin-bottom: 16px;">Belfast</h2>
+        <p style="font-size: 14px; line-height: 1.55; color: #55504a; font-weight: 300; margin-bottom: 20px;">Traces of a city and the people within.</p>
+        <a href="#" data-goto-series="belfast" class="wei-vlink" style="font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; font-weight: 500; display: inline-flex; align-items: center; gap: 8px;">View project <span>&rarr;</span></a>
+      </div>
+      <div style="flex: 1; display: grid; grid-template-columns: 1.4fr 1fr; gap: 2px; align-items: stretch;">
+        <video id="belfast-landscape-01" data-ar="2.2/1" src="assets/featured/belfast1.mov" autoplay muted loop playsinline style="width:100%; height:auto; aspect-ratio:2.2/1; object-fit: cover; object-position: center center; background: #ECE9E3;"></video>
+        <img id="belfast-landscape-02" src="assets/featured/belfast2.jpg" alt="Belfast" style="width:100%; height:100%; object-fit: cover; object-position: center center; background: #ECE9E3;">
+      </div>
+    </section>
+
+    <!-- Row 2: Interlude -->
+    <section class="resp-row" style="display: flex; border-top: 1px solid rgba(28,26,23,0.12); min-height: 190px;">
+      <div class="resp-sidebar" style="width: 260px; flex-shrink: 0; background: #ECE9E3; display: flex; flex-direction: column; justify-content: center; padding: 40px 34px;">
+        <h2 style="font-size: 26px; font-weight: 400; letter-spacing: 0.01em; margin-bottom: 16px;">Interlude</h2>
+        <p style="font-size: 14px; line-height: 1.55; color: #55504a; font-weight: 300; margin-bottom: 20px;">Fragments between moments.</p>
+        <a href="#" data-goto-series="interlude" class="wei-vlink" style="font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; font-weight: 500; display: inline-flex; align-items: center; gap: 8px;">View project <span>&rarr;</span></a>
+      </div>
+      <div style="flex: 1;">
+        <video id="interlude-01" data-ar="3/1" src="assets/featured/interlude.MP4" autoplay muted loop playsinline style="width:100%; height:auto; aspect-ratio:3/1; object-fit: cover; object-position: center center; background: #ECE9E3;"></video>
+      </div>
+    </section>
+
+    <!-- Row 3: Palette -->
+    <section class="resp-row" style="display: flex; border-top: 1px solid rgba(28,26,23,0.12); min-height: 210px;">
+      <div class="resp-sidebar" style="width: 260px; flex-shrink: 0; background: #ECE9E3; display: flex; flex-direction: column; justify-content: center; padding: 40px 34px;">
+        <h2 style="font-size: 26px; font-weight: 400; letter-spacing: 0.01em; margin-bottom: 16px;">Palette</h2>
+        <p style="font-size: 14px; line-height: 1.55; color: #55504a; font-weight: 300; margin-bottom: 20px;">Colour, light and visual experiments.</p>
+        <a href="#" data-goto-series="palette" class="wei-vlink" style="font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; font-weight: 500; display: inline-flex; align-items: center; gap: 8px;">View project <span>&rarr;</span></a>
+      </div>
+      <div style="flex: 1; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 2px;">
+        <video id="palette-01" data-ar="1/1" src="assets/featured/palette1.mov" autoplay muted loop playsinline style="width:100%; height:auto; aspect-ratio:1/1; object-fit: cover; object-position: center center; background: #ECE9E3;"></video>
+        <video id="palette-02" data-ar="1/1" src="assets/featured/palette2.mov" autoplay muted loop playsinline style="width:100%; height:auto; aspect-ratio:1/1; object-fit: cover; object-position: center center; background: #ECE9E3;"></video>
+        <video id="palette-03" data-ar="1/1" src="assets/featured/palette3.mov" autoplay muted loop playsinline style="width:100%; height:auto; aspect-ratio:1/1; object-fit: cover; object-position: center center; background: #ECE9E3;"></video>
+      </div>
+    </section>
+
+    <!-- Row 4: Bugs -->
+    <section id="bugs" class="resp-row" style="display: flex; border-top: 1px solid rgba(28,26,23,0.12); border-bottom: 1px solid rgba(28,26,23,0.12); min-height: 190px;">
+      <div class="resp-sidebar" style="width: 260px; flex-shrink: 0; background: #ECE9E3; display: flex; flex-direction: column; justify-content: center; padding: 40px 34px;">
+        <h2 style="font-size: 26px; font-weight: 400; letter-spacing: 0.01em; margin-bottom: 16px;">Bugs</h2>
+        <p style="font-size: 14px; line-height: 1.55; color: #55504a; font-weight: 300; margin-bottom: 20px;">Small habits, noticed and recorded.</p>
+        <a href="#" data-goto-series="bugs" class="wei-vlink" style="font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; font-weight: 500; display: inline-flex; align-items: center; gap: 8px;">View project <span>&rarr;</span></a>
+      </div>
+      <div style="flex: 1; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 2px;">
+        <video id="bugs-01" data-mode="bugs" src="assets/bugs/videos/bugs01.mp4" poster="assets/bugs/images/bug01-cover.jpg" muted loop playsinline preload="metadata" style="width:100%; height:auto; aspect-ratio:1/1; object-fit: contain; object-position: center center; background: #1c1a17;"></video>
+        <video id="bugs-02" data-mode="bugs" src="assets/bugs/videos/bugs02.mp4" poster="assets/bugs/images/bug02-cover.jpg" muted loop playsinline preload="metadata" style="width:100%; height:auto; aspect-ratio:1/1; object-fit: contain; object-position: center center; background: #1c1a17;"></video>
+        <video id="bugs-03" data-mode="bugs" src="assets/bugs/videos/e72.mp4" poster="assets/bugs/images/E72-cover.jpg" muted loop playsinline preload="metadata" style="width:100%; height:auto; aspect-ratio:1/1; object-fit: contain; object-position: center center; background: #1c1a17;"></video>
+      </div>
+    </section>
+
+    <!-- Latest observations + From the journal -->
+    <section class="resp-homesplit" style="display: grid; grid-template-columns: 1.6fr 1fr; gap: 40px; padding: 40px 0 48px;">
+      <div>
+        <div style="display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 18px;">
+          <div style="font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase; font-weight: 600;">Latest observations</div>
+          <a href="#" data-goto-page="projects" class="wei-vlink" style="font-size: 12px; color: #55504a; font-weight: 300;">View all</a>
+        </div>
+        <div class="resp-obsgrid" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px;">
+          <div>
+            <video id="obs-01" data-ar="1/1" src="assets/featured/latest1.mov" autoplay muted loop playsinline style="width:100%; height:auto; aspect-ratio:1/1; margin-bottom: 10px; object-fit: cover; object-position: center center; background: #ECE9E3;"></video>
+            <div class="editable-text" data-editkey="obs-01-title" style="font-size: 13px; font-weight: 400; margin-bottom: 4px;">Blue wall, morning light</div>
+            <div class="editable-text" data-editkey="obs-01-category" style="font-size: 12px; color: #55504a;">Belfast</div>
+            <div class="editable-text" data-editkey="obs-01-date" style="font-size: 12px; color: #8a8479;">May 20, 2026</div>
+          </div>
+          <div>
+            <img id="obs-02" data-ar="1/1" src="assets/featured/latest2.jpg" alt="Rain on the ground" style="width:100%; height:auto; aspect-ratio:1/1; margin-bottom: 10px; object-fit: cover; object-position: center center; background: #ECE9E3;">
+            <div class="editable-text" data-editkey="obs-02-title" style="font-size: 13px; font-weight: 400; margin-bottom: 4px;">Rain on the ground</div>
+            <div class="editable-text" data-editkey="obs-02-category" style="font-size: 12px; color: #55504a;">Belfast</div>
+            <div class="editable-text" data-editkey="obs-02-date" style="font-size: 12px; color: #8a8479;">May 18, 2026</div>
+          </div>
+          <div>
+            <img id="obs-03" data-ar="1/1" src="assets/featured/latest3.jpg" alt="A pause" style="width:100%; height:auto; aspect-ratio:1/1; margin-bottom: 10px; object-fit: cover; object-position: center center; background: #ECE9E3;">
+            <div class="editable-text" data-editkey="obs-03-title" style="font-size: 13px; font-weight: 400; margin-bottom: 4px;">A pause</div>
+            <div class="editable-text" data-editkey="obs-03-category" style="font-size: 12px; color: #55504a;">Interlude</div>
+            <div class="editable-text" data-editkey="obs-03-date" style="font-size: 12px; color: #8a8479;">May 17, 2026</div>
+          </div>
+          <div>
+            <img id="obs-04" data-ar="1/1" src="assets/featured/latest4.jpg" alt="Yellow, almost fading" style="width:100%; height:auto; aspect-ratio:1/1; margin-bottom: 10px; object-fit: cover; object-position: center center; background: #ECE9E3;">
+            <div class="editable-text" data-editkey="obs-04-title" style="font-size: 13px; font-weight: 400; margin-bottom: 4px;">Yellow, almost fading</div>
+            <div class="editable-text" data-editkey="obs-04-category" style="font-size: 12px; color: #55504a;">Palette</div>
+            <div class="editable-text" data-editkey="obs-04-date" style="font-size: 12px; color: #8a8479;">May 15, 2026</div>
+          </div>
+        </div>
+      </div>
+      <div id="journal">
+        <div style="display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 18px;">
+          <div style="font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase; font-weight: 600;">From the journal</div>
+          <a href="#journal-all" class="wei-vlink" style="font-size: 12px; color: #55504a; font-weight: 300;">View all</a>
+        </div>
+        <img id="journal-01" data-ar="15/16" src="assets/featured/journal.jpg" alt="Learning to notice the ordinary" style="width:100%; height:auto; aspect-ratio:15/16; margin-bottom: 18px; object-fit: cover; object-position: center center; background: #ECE9E3;">
+        <h3 style="font-size: 19px; font-weight: 400; line-height: 1.35; margin-bottom: 10px;">Learning to notice the ordinary</h3>
+        <div style="font-size: 12px; color: #8a8479; margin-bottom: 14px;">May 12, 2026</div>
+        <p style="font-size: 14px; line-height: 1.55; color: #55504a; font-weight: 300; margin-bottom: 16px;">I used to look for moments. Now I try to notice what has always been there.</p>
+        <a href="#entry" class="wei-vlink" style="font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; font-weight: 500; display: inline-flex; align-items: center; gap: 8px;">Read entry <span>&rarr;</span></a>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Quote band -->
+  <section style="background: #ECE9E3; padding: 44px 40px; display: flex; align-items: center; justify-content: center; gap: 18px;">
+    <span style="font-size: 28px; color: rgba(28,26,23,0.3); line-height: 1;">&ldquo;</span>
+    <p style="font-size: 18px; font-weight: 300; font-style: italic; text-align: center; max-width: 620px;">Observation is a way of staying present in the world.</p>
+  </section>
+
+  </div>
+  <!-- ══════ /首页 ══════ -->
+
+  <!-- ══════ Projects 页面 ══════ -->
+  <div id="page-projects" class="page-view">
+
+    <!-- 子导航:粘在顶部导航栏(WEI/Projects/Journal/About)正下方,标示当前系列,点击跳转。
+         顶部导航栏本身也是锁定的,点 WEI 随时能回首页,不再需要单独的"返回首页"提示。 -->
+    <nav id="projects-subnav" style="display:flex; align-items:center; gap:28px; padding:20px 40px; border-bottom:1px solid rgba(28,26,23,0.12); position:sticky; background:#F5F3EF; z-index:20;">
+      <a href="#" data-series="belfast" class="proj-subnav-link">Belfast</a>
+      <a href="#" data-series="interlude" class="proj-subnav-link">Interlude</a>
+      <a href="#" data-series="palette" class="proj-subnav-link">Palette</a>
+      <a href="#" data-series="bugs" class="proj-subnav-link">Bugs</a>
+    </nav>
+
+    <!-- Belfast -->
+    <section class="proj-series" id="series-belfast" data-series="belfast">
+      <div class="proj-series-header">
+        <div class="proj-eyebrow">Projects — 01</div>
+        <h2>Belfast</h2>
+        <p>Traces of a city and the people within.</p>
+      </div>
+      <div class="gallery-static" data-series="belfast">
+        <img src="assets/Belfast%20-%20the%20layers%20others%20miss%20in%20this%20city/images/Belfast13.jpg" alt="Belfast — photograph 13">
+        <img src="assets/Belfast%20-%20the%20layers%20others%20miss%20in%20this%20city/images/Belfast11.jpg" alt="Belfast — photograph 11">
+        <img src="assets/Belfast%20-%20the%20layers%20others%20miss%20in%20this%20city/images/Belfast05.jpg" alt="Belfast — photograph 5">
+        <video src="assets/Belfast%20-%20the%20layers%20others%20miss%20in%20this%20city/videos/Belfast02.mov" autoplay muted loop playsinline preload="metadata"></video>
+        <img src="assets/Belfast%20-%20the%20layers%20others%20miss%20in%20this%20city/images/Belfast02.jpg" alt="Belfast — photograph 2">
+        <img src="assets/Belfast%20-%20the%20layers%20others%20miss%20in%20this%20city/images/Belfast12.jpg" alt="Belfast — photograph 12">
+        <img src="assets/Belfast%20-%20the%20layers%20others%20miss%20in%20this%20city/images/Belfast03.jpg" alt="Belfast — photograph 3">
+        <img src="assets/Belfast%20-%20the%20layers%20others%20miss%20in%20this%20city/images/Belfast10.jpg" alt="Belfast — photograph 10">
+        <img src="assets/Belfast%20-%20the%20layers%20others%20miss%20in%20this%20city/images/Belfast04.jpg" alt="Belfast — photograph 4">
+        <img src="assets/Belfast%20-%20the%20layers%20others%20miss%20in%20this%20city/images/Belfast14.jpg" alt="Belfast — photograph 14">
+        <img src="assets/Belfast%20-%20the%20layers%20others%20miss%20in%20this%20city/images/Belfast01.jpg" alt="Belfast — photograph 1">
+        <img src="assets/Belfast%20-%20the%20layers%20others%20miss%20in%20this%20city/images/Belfast08.jpg" alt="Belfast — photograph 8">
+        <img src="assets/Belfast%20-%20the%20layers%20others%20miss%20in%20this%20city/images/Belfast06.jpg" alt="Belfast — photograph 6">
+        <img src="assets/Belfast%20-%20the%20layers%20others%20miss%20in%20this%20city/images/Belfast09.jpg" alt="Belfast — photograph 9">
+        <video src="assets/Belfast%20-%20the%20layers%20others%20miss%20in%20this%20city/videos/Belfast01.mov" autoplay muted loop playsinline preload="metadata"></video>
+        <img src="assets/Belfast%20-%20the%20layers%20others%20miss%20in%20this%20city/images/Belfast07.jpg" alt="Belfast — photograph 7">
+      </div>
+      <button class="gallery-more-toggle" type="button" data-series="belfast">Show more</button>
+    </section>
+
+    <!-- Interlude -->
+    <section class="proj-series" id="series-interlude" data-series="interlude">
+      <div class="proj-series-header">
+        <div class="proj-eyebrow">Projects — 02</div>
+        <h2>Interlude</h2>
+        <p>Fragments between moments.</p>
+      </div>
+      <div class="gallery-static" data-series="interlude">
+        <video src="assets/Interlude%20-%20pausing%20for%20the%20present/videos/1-1.MP4" autoplay muted loop playsinline preload="metadata"></video>
+        <video src="assets/Interlude%20-%20pausing%20for%20the%20present/videos/2-1.MP4" autoplay muted loop playsinline preload="metadata"></video>
+        <video src="assets/Interlude%20-%20pausing%20for%20the%20present/videos/4-1.MP4" autoplay muted loop playsinline preload="metadata"></video>
+        <video src="assets/Interlude%20-%20pausing%20for%20the%20present/videos/5-1.MP4" autoplay muted loop playsinline preload="metadata"></video>
+        <video src="assets/Interlude%20-%20pausing%20for%20the%20present/videos/6-1.MP4" autoplay muted loop playsinline preload="metadata"></video>
+        <video src="assets/Interlude%20-%20pausing%20for%20the%20present/videos/7-1.MP4" autoplay muted loop playsinline preload="metadata"></video>
+        <video src="assets/Interlude%20-%20pausing%20for%20the%20present/videos/8-1.MP4" autoplay muted loop playsinline preload="metadata"></video>
+        <video src="assets/Interlude%20-%20pausing%20for%20the%20present/videos/10-1.MP4" autoplay muted loop playsinline preload="metadata"></video>
+        <video src="assets/Interlude%20-%20pausing%20for%20the%20present/videos/11-1.MP4" autoplay muted loop playsinline preload="metadata"></video>
+        <video src="assets/Interlude%20-%20pausing%20for%20the%20present/videos/12-1.MP4" autoplay muted loop playsinline preload="metadata"></video>
+        <img src="assets/Interlude%20-%20pausing%20for%20the%20present/images/Interlude01.jpg" alt="Interlude — photograph 1">
+        <img src="assets/Interlude%20-%20pausing%20for%20the%20present/images/Interlude02.jpg" alt="Interlude — photograph 2">
+        <img src="assets/Interlude%20-%20pausing%20for%20the%20present/images/Interlude03.jpg" alt="Interlude — photograph 3">
+        <img src="assets/Interlude%20-%20pausing%20for%20the%20present/images/Interlude04.jpg" alt="Interlude — photograph 4">
+        <img src="assets/Interlude%20-%20pausing%20for%20the%20present/images/Interlude05.jpg" alt="Interlude — photograph 5">
+        <img src="assets/Interlude%20-%20pausing%20for%20the%20present/images/Interlude06.jpg" alt="Interlude — photograph 6">
+        <img src="assets/Interlude%20-%20pausing%20for%20the%20present/images/Interlude07.jpg" alt="Interlude — photograph 7">
+        <video src="assets/Interlude%20-%20pausing%20for%20the%20present/videos/Interlude01.mov" autoplay muted loop playsinline preload="metadata"></video>
+        <video src="assets/Interlude%20-%20pausing%20for%20the%20present/videos/Interlude02.mov" autoplay muted loop playsinline preload="metadata"></video>
+        <video src="assets/Interlude%20-%20pausing%20for%20the%20present/videos/Interlude03.mov" autoplay muted loop playsinline preload="metadata"></video>
+      </div>
+      <button class="gallery-more-toggle" type="button" data-series="interlude">Show more</button>
+    </section>
+
+    <!-- Palette -->
+    <section class="proj-series" id="series-palette" data-series="palette">
+      <div class="proj-series-header">
+        <div class="proj-eyebrow">Projects — 03</div>
+        <h2>Palette</h2>
+        <p>Colour, light and visual experiments.</p>
+      </div>
+      <div class="gallery-static" data-series="palette">
+        <img src="assets/Palette%20-%20colours%20of%20the%20everyday/images/Palette12.jpg" alt="Palette — photograph 12">
+        <img src="assets/Palette%20-%20colours%20of%20the%20everyday/images/Palette01.jpg" alt="Palette — photograph 1">
+        <img src="assets/Palette%20-%20colours%20of%20the%20everyday/images/Palette07.jpg" alt="Palette — photograph 7">
+        <img src="assets/Palette%20-%20colours%20of%20the%20everyday/images/Palette15.jpg" alt="Palette — photograph 15">
+        <img src="assets/Palette%20-%20colours%20of%20the%20everyday/images/Palette11.jpg" alt="Palette — photograph 11">
+        <video src="assets/Palette%20-%20colours%20of%20the%20everyday/videos/Palette07.mov" autoplay muted loop playsinline preload="metadata"></video>
+        <img src="assets/Palette%20-%20colours%20of%20the%20everyday/images/Palette28.jpg" alt="Palette — photograph 28">
+        <img src="assets/Palette%20-%20colours%20of%20the%20everyday/images/Palette26.jpg" alt="Palette — photograph 26">
+        <video src="assets/Palette%20-%20colours%20of%20the%20everyday/videos/Palette01.mov" autoplay muted loop playsinline preload="metadata"></video>
+        <img src="assets/Palette%20-%20colours%20of%20the%20everyday/images/Palette20.jpg" alt="Palette — photograph 20">
+        <video src="assets/Palette%20-%20colours%20of%20the%20everyday/videos/Palette09.mov" autoplay muted loop playsinline preload="metadata"></video>
+        <img src="assets/Palette%20-%20colours%20of%20the%20everyday/images/Palette23.jpg" alt="Palette — photograph 23">
+        <img src="assets/Palette%20-%20colours%20of%20the%20everyday/images/Palette18.jpg" alt="Palette — photograph 18">
+        <video src="assets/Palette%20-%20colours%20of%20the%20everyday/videos/Palette11.mov" autoplay muted loop playsinline preload="metadata"></video>
+        <video src="assets/Palette%20-%20colours%20of%20the%20everyday/videos/Palette16.mov" autoplay muted loop playsinline preload="metadata"></video>
+        <video src="assets/Palette%20-%20colours%20of%20the%20everyday/videos/Palette14.mov" autoplay muted loop playsinline preload="metadata"></video>
+        <img src="assets/Palette%20-%20colours%20of%20the%20everyday/images/Palette14.jpg" alt="Palette — photograph 14">
+        <video src="assets/Palette%20-%20colours%20of%20the%20everyday/videos/Palette06.mov" autoplay muted loop playsinline preload="metadata"></video>
+        <img src="assets/Palette%20-%20colours%20of%20the%20everyday/images/Palette29.jpg" alt="Palette — photograph 29">
+        <video src="assets/Palette%20-%20colours%20of%20the%20everyday/videos/Palette13.mov" autoplay muted loop playsinline preload="metadata"></video>
+        <video src="assets/Palette%20-%20colours%20of%20the%20everyday/videos/Palette24.mov" autoplay muted loop playsinline preload="metadata"></video>
+        <video src="assets/Palette%20-%20colours%20of%20the%20everyday/videos/Palette02.mov" autoplay muted loop playsinline preload="metadata"></video>
+        <img src="assets/Palette%20-%20colours%20of%20the%20everyday/images/Palette21.jpg" alt="Palette — photograph 21">
+        <img src="assets/Palette%20-%20colours%20of%20the%20everyday/images/Palette13.jpg" alt="Palette — photograph 13">
+        <video src="assets/Palette%20-%20colours%20of%20the%20everyday/videos/Palette22.mov" autoplay muted loop playsinline preload="metadata"></video>
+        <video src="assets/Palette%20-%20colours%20of%20the%20everyday/videos/Palette10.mov" autoplay muted loop playsinline preload="metadata"></video>
+        <img src="assets/Palette%20-%20colours%20of%20the%20everyday/images/Palette10.jpg" alt="Palette — photograph 10">
+        <img src="assets/Palette%20-%20colours%20of%20the%20everyday/images/Palette19.jpg" alt="Palette — photograph 19">
+        <img src="assets/Palette%20-%20colours%20of%20the%20everyday/images/Palette22.jpg" alt="Palette — photograph 22">
+        <video src="assets/Palette%20-%20colours%20of%20the%20everyday/videos/Palette26.mov" autoplay muted loop playsinline preload="metadata"></video>
+        <img src="assets/Palette%20-%20colours%20of%20the%20everyday/images/Palette25.jpg" alt="Palette — photograph 25">
+        <img src="assets/Palette%20-%20colours%20of%20the%20everyday/images/Palette04.jpeg" alt="Palette — photograph 4">
+        <video src="assets/Palette%20-%20colours%20of%20the%20everyday/videos/Palette04.mov" autoplay muted loop playsinline preload="metadata"></video>
+        <video src="assets/Palette%20-%20colours%20of%20the%20everyday/videos/Palette08.mov" autoplay muted loop playsinline preload="metadata"></video>
+        <img src="assets/Palette%20-%20colours%20of%20the%20everyday/images/Palette03.jpg" alt="Palette — photograph 3">
+        <img src="assets/Palette%20-%20colours%20of%20the%20everyday/images/Palette02.jpg" alt="Palette — photograph 2">
+        <img src="assets/Palette%20-%20colours%20of%20the%20everyday/images/Palette17.jpg" alt="Palette — photograph 17">
+        <img src="assets/Palette%20-%20colours%20of%20the%20everyday/images/Palette09.jpg" alt="Palette — photograph 9">
+        <img src="assets/Palette%20-%20colours%20of%20the%20everyday/images/Palette06.jpg" alt="Palette — photograph 6">
+        <video src="assets/Palette%20-%20colours%20of%20the%20everyday/videos/Palette05.mov" autoplay muted loop playsinline preload="metadata"></video>
+        <video src="assets/Palette%20-%20colours%20of%20the%20everyday/videos/Palette17.mov" autoplay muted loop playsinline preload="metadata"></video>
+        <img src="assets/Palette%20-%20colours%20of%20the%20everyday/images/Palette24.jpg" alt="Palette — photograph 24">
+        <video src="assets/Palette%20-%20colours%20of%20the%20everyday/videos/Palette25.mov" autoplay muted loop playsinline preload="metadata"></video>
+        <img src="assets/Palette%20-%20colours%20of%20the%20everyday/images/Palette27.jpg" alt="Palette — photograph 27">
+        <video src="assets/Palette%20-%20colours%20of%20the%20everyday/videos/Palette15.mov" autoplay muted loop playsinline preload="metadata"></video>
+        <img src="assets/Palette%20-%20colours%20of%20the%20everyday/images/Palette08.jpg" alt="Palette — photograph 8">
+        <video src="assets/Palette%20-%20colours%20of%20the%20everyday/videos/Palette12.mov" autoplay muted loop playsinline preload="metadata"></video>
+        <img src="assets/Palette%20-%20colours%20of%20the%20everyday/images/Palette05.jpg" alt="Palette — photograph 5">
+        <video src="assets/Palette%20-%20colours%20of%20the%20everyday/videos/Palette23.mov" autoplay muted loop playsinline preload="metadata"></video>
+        <img src="assets/Palette%20-%20colours%20of%20the%20everyday/images/Palette16.jpg" alt="Palette — photograph 16">
+        <video src="assets/Palette%20-%20colours%20of%20the%20everyday/videos/Palette21.mov" autoplay muted loop playsinline preload="metadata"></video>
+        <video src="assets/Palette%20-%20colours%20of%20the%20everyday/videos/Palette18.mov" autoplay muted loop playsinline preload="metadata"></video>
+        <video src="assets/Palette%20-%20colours%20of%20the%20everyday/videos/Palette20.mov" autoplay muted loop playsinline preload="metadata"></video>
+        <video src="assets/Palette%20-%20colours%20of%20the%20everyday/videos/Palette03.mov" autoplay muted loop playsinline preload="metadata"></video>
+        <video src="assets/Palette%20-%20colours%20of%20the%20everyday/videos/Palette19.mov" autoplay muted loop playsinline preload="metadata"></video>
+      </div>
+      <button class="gallery-more-toggle" type="button" data-series="palette">Show more</button>
+    </section>
+
+    <!-- Bugs -->
+    <section class="proj-series" id="series-bugs" data-series="bugs">
+      <div class="proj-series-header">
+        <div class="proj-eyebrow">Projects — 04</div>
+        <h2>Bugs</h2>
+        <p>Small habits, noticed and recorded.</p>
+      </div>
+      <div class="gallery-static" data-series="bugs">
+        <video src="assets/bugs/videos/bugs01.mp4" data-mode="bugs" poster="assets/bugs/images/bug01-cover.jpg" muted loop playsinline preload="metadata" style="object-fit: contain; background: #1c1a17;"></video>
+        <video src="assets/bugs/videos/bugs02.mp4" data-mode="bugs" poster="assets/bugs/images/bug02-cover.jpg" muted loop playsinline preload="metadata" style="object-fit: contain; background: #1c1a17;"></video>
+        <video src="assets/bugs/videos/e72.mp4" data-mode="bugs" poster="assets/bugs/images/E72-cover.jpg" muted loop playsinline preload="metadata" style="object-fit: contain; background: #1c1a17;"></video>
+      </div>
+      <button class="gallery-more-toggle" type="button" data-series="bugs">Show more</button>
+    </section>
+
+  </div>
+  <!-- ══════ /Projects 页面 ══════ -->
+
+
+  <!-- Footer -->
+  <footer style="display: flex; align-items: center; justify-content: space-between; padding: 30px 40px;">
+    <div style="font-size: 12px; color: #8a8479; font-weight: 300;">&copy; 2026 Wei</div>
+    <div style="display: flex; gap: 28px;">
+      <a href="#instagram" class="wei-vlink" style="font-size: 12px; color: #55504a; font-weight: 300;">Instagram</a>
+      <a href="#substack" class="wei-vlink" style="font-size: 12px; color: #55504a; font-weight: 300;">Substack</a>
+      <a href="#contact" class="wei-vlink" style="font-size: 12px; color: #55504a; font-weight: 300;">Contact</a>
+    </div>
+  </footer>
+
+</div>
+
+
+<!-- ══════════════════════════════════════════════════════════════
+     Upload-slot: 自包含的上传组件
+     · HEIC 上传自动转 JPEG(高质量)
+     · 视频:自动播放 → 播完静止 1 秒 → 循环
+     · IndexedDB 持久化:刷新/重开不丢,除非主动替换
+     ══════════════════════════════════════════════════════════════ -->
+<script>
+/* 动态加载 libheif-js (WASM, libheif 1.19.8) —— 能正确解码 iPhone 的 10-bit HEIC。
+   主源失败自动切备用源。加载不到时,HEIC 上传会提示,不影响其它格式。 */
+(function () {
+  var sources = [
+    'https://cdn.jsdelivr.net/npm/libheif-js@1.19.8/libheif-wasm/libheif-bundle.js',
+    'https://unpkg.com/libheif-js@1.19.8/libheif-wasm/libheif-bundle.js'
+  ];
+  // 解析为已初始化的 libheif 模块(含 HeifDecoder),失败则为 null。
+  window.__heicModule = new Promise(function (resolve) {
+    var i = 0;
+    function init() {
+      // 浏览器 bundle 把 libheif 暴露为工厂函数,await 后才拿到模块
+      try {
+        var maybe = libheif;
+        if (typeof maybe === 'function') {
+          Promise.resolve(maybe()).then(resolve).catch(function () { resolve(null); });
+        } else if (maybe && maybe.HeifDecoder) {
+          resolve(maybe);
+        } else {
+          resolve(null);
+        }
+      } catch (e) { resolve(null); }
+    }
+    function tryNext() {
+      if (typeof libheif !== 'undefined') { init(); return; }
+      if (i >= sources.length) { resolve(null); return; }
+      var s = document.createElement('script');
+      s.src = sources[i++];
+      s.onload = init;
+      s.onerror = tryNext;
+      document.head.appendChild(s);
+    }
+    tryNext();
+  });
+})();
+</script>
+<style>
+  upload-slot {
+    display: block;
+    position: relative;
+    background: #ECE9E3;
+    overflow: hidden;
+    cursor: pointer;
+  }
+  upload-slot .us-inner {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+  }
+  upload-slot .us-placeholder {
+    font-family: 'Inter', sans-serif;
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #a8a29a;
+    font-weight: 400;
+    text-align: center;
+    padding: 12px;
+    user-select: none;
+    transition: color 0.2s;
+  }
+  upload-slot:hover .us-placeholder { color: #6b6960; }
+  upload-slot.us-dragover { outline: 1.5px dashed #8a8479; outline-offset: -6px; }
+  upload-slot.us-dragover .us-placeholder { color: #1c1a17; }
+  /* 视频和图片一样不用 object-fit:cover —— 保留原始画面全部像素,由 JS 按原始
+     尺寸定位、用 transform 缩放/平移/旋转/翻转,拖动才能触达画面任何区域。 */
+  upload-slot video {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    max-width: none;
+    display: block;
+    transform-origin: center center;
+    will-change: transform;
+  }
+  /* bugs 模式的视频不使用上面这套"原生像素定位+JS margin补偿"的裁剪系统
+     (它没有裁剪功能),必须把定位方式改回正常的文档流填充,否则会被上面那条
+     绝对定位规则错位到右下角,让 object-fit:contain 的黑边计算完全错乱。 */
+  upload-slot[data-mode="bugs"] video {
+    position: static;
+    top: auto;
+    left: auto;
+    max-width: 100%;
+    margin: 0;
+  }
+  /* 图片不用 object-fit:cover —— 保留原图全部像素,由 JS 按原始尺寸定位、
+     用 transform 缩放/平移,这样拖动才能触达全图任何区域,而不只是预裁剪的一角。 */
+  upload-slot img {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    max-width: none;
+    display: block;
+    transform-origin: center center;
+    will-change: transform;
+  }
+  /* 裁剪模式:图片/视频框进入可拖动状态 */
+  upload-slot.us-cropping { cursor: move; z-index: 50; }
+  upload-slot.us-cropping img,
+  upload-slot.us-cropping video {
+    cursor: move;
+    transition: none;
+    user-select: none;
+    -webkit-user-drag: none;
+  }
+  /* 裁剪时的取景网格(三分线),辅助构图 */
+  upload-slot .us-cropgrid {
+    position: absolute;
+    inset: 0;
+    z-index: 4;
+    pointer-events: none;
+    opacity: 0;
+    background-image:
+      linear-gradient(rgba(245,243,239,0.35) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(245,243,239,0.35) 1px, transparent 1px);
+    background-size: 33.333% 33.333%;
+    background-position: center;
+    box-shadow: inset 0 0 0 1px rgba(245,243,239,0.4);
+  }
+  upload-slot.us-cropping .us-cropgrid { opacity: 1; }
+  /* 编辑模式底部工具条 */
+  upload-slot .us-cropbar {
+    position: absolute;
+    left: 8px; right: 8px; bottom: 8px;
+    z-index: 6;
+    display: none;
+    flex-direction: column;
+    gap: 8px;
+    padding: 10px;
+    background: rgba(28,26,23,0.86);
+    backdrop-filter: blur(6px);
+    border-radius: 7px;
+  }
+  upload-slot.us-cropping .us-cropbar { display: flex; }
+  upload-slot .us-sliderrow {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  upload-slot .us-sliderrow label {
+    font-family: 'Inter', sans-serif;
+    font-size: 8px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: #b8b2a8;
+    width: 42px;
+    flex-shrink: 0;
+    user-select: none;
+  }
+  upload-slot .us-range {
+    flex: 1;
+    accent-color: #f5f3ef;
+    height: 3px;
+    cursor: pointer;
+    min-width: 40px;
+  }
+  upload-slot .us-rangeval {
+    font-family: 'Inter', sans-serif;
+    font-size: 9px;
+    color: #d8d4cc;
+    width: 34px;
+    text-align: right;
+    flex-shrink: 0;
+    user-select: none;
+  }
+  upload-slot .us-btnrow {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+  upload-slot .us-tool {
+    font-family: 'Inter', sans-serif;
+    font-size: 9px;
+    letter-spacing: 0.05em;
+    color: #f5f3ef;
+    background: rgba(245,243,239,0.14);
+    border: none;
+    padding: 6px 9px;
+    cursor: pointer;
+    border-radius: 4px;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    white-space: nowrap;
+  }
+  upload-slot .us-tool:hover { background: rgba(245,243,239,0.26); }
+  upload-slot .us-tool.active { background: rgba(245,243,239,0.9); color: #1c1a17; }
+  upload-slot .us-tool svg { width: 12px; height: 12px; display: block; }
+  upload-slot .us-cropbar .us-spacer { flex: 1; }
+  upload-slot .us-cropbtn {
+    font-family: 'Inter', sans-serif;
+    font-size: 9px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    border: none;
+    padding: 6px 12px;
+    cursor: pointer;
+    border-radius: 4px;
+  }
+  upload-slot .us-cropbtn.done { background: #f5f3ef; color: #1c1a17; }
+  upload-slot .us-cropbtn.cancel { background: transparent; color: #d8d4cc; }
+  /* 全局导出栏 */
+  #us-exportbar {
+    position: fixed;
+    right: 20px; bottom: 20px;
+    z-index: 200;
+    display: flex;
+    gap: 10px;
+    align-items: center;
+  }
+  #us-exportbar button {
+    font-family: 'Inter', sans-serif;
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: #f5f3ef;
+    background: #1c1a17;
+    border: none;
+    padding: 11px 18px;
+    border-radius: 6px;
+    cursor: pointer;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.18);
+    transition: background 0.15s;
+  }
+  #us-exportbar button:hover { background: #000; }
+  #us-exportbar button:disabled { opacity: 0.5; cursor: default; }
+  upload-slot .us-busy {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(236,233,227,0.85);
+    font-family: 'Inter', sans-serif;
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #55504a;
+    z-index: 2;
+  }
+  /* 悬停时出现的替换/清除按钮 */
+  upload-slot .us-controls {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    display: flex;
+    gap: 6px;
+    opacity: 0;
+    transition: opacity 0.2s;
+    z-index: 3;
+  }
+  upload-slot:hover .us-controls { opacity: 1; }
+  upload-slot .us-btn {
+    font-family: 'Inter', sans-serif;
+    font-size: 9px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: #f5f3ef;
+    background: rgba(28,26,23,0.72);
+    border: none;
+    padding: 4px 9px;
+    cursor: pointer;
+    backdrop-filter: blur(4px);
+  }
+  upload-slot .us-btn:hover { background: rgba(28,26,23,0.92); }
+  /* Bugs 区块的"原始尺寸"视频:悬停播放,静止时显示封面(若有上传)+ 播放提示 */
+  upload-slot[data-mode="bugs"] { background: #1c1a17; min-width: 0; }
+  upload-slot[data-mode="bugs"] .us-cover {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    z-index: 2;
+    pointer-events: none;
+    transition: opacity 0.25s ease;
+  }
+  upload-slot[data-mode="bugs"] .us-playhint {
+    position: absolute;
+    left: 10px;
+    bottom: 10px;
+    z-index: 3;
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: rgba(28,26,23,0.55);
+    backdrop-filter: blur(3px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+    opacity: 1;
+    transition: opacity 0.2s ease;
+  }
+  upload-slot[data-mode="bugs"] .us-playhint svg {
+    width: 10px;
+    height: 10px;
+    fill: #f5f3ef;
+    margin-left: 1px;
+  }
+  upload-slot[data-mode="bugs"]:hover .us-playhint,
+  upload-slot[data-mode="bugs"].us-playing .us-cover { opacity: 0; }
+  @media (prefers-reduced-motion: reduce) {
+    upload-slot[data-mode="bugs"] .us-cover, upload-slot[data-mode="bugs"] .us-playhint { transition: none; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    upload-slot .us-placeholder, upload-slot .us-controls { transition: none; }
+  }
+</style>
+
+<script>
+(function () {
+  'use strict';
+
+  // ── IndexedDB 简易封装:存 { id → Blob } ──
+  const DB_NAME = 'wei-portfolio-media';
+  const STORE = 'slots';
+  let dbPromise = null;
+
+  function openDB() {
+    if (dbPromise) return dbPromise;
+    dbPromise = new Promise((resolve, reject) => {
+      const req = indexedDB.open(DB_NAME, 1);
+      req.onupgradeneeded = () => {
+        const db = req.result;
+        if (!db.objectStoreNames.contains(STORE)) db.createObjectStore(STORE);
+      };
+      req.onsuccess = () => resolve(req.result);
+      req.onerror = () => reject(req.error);
+    });
+    return dbPromise;
+  }
+
+  // 存储记录格式:{ blob, transform: {scale, x, y} }
+  // 兼容旧数据:取到裸 Blob 时包装成默认 transform。
+  async function idbSet(key, record) {
+    const db = await openDB();
+    return new Promise((resolve, reject) => {
+      const tx = db.transaction(STORE, 'readwrite');
+      tx.objectStore(STORE).put(record, key);
+      tx.oncomplete = () => resolve();
+      tx.onerror = () => reject(tx.error);
+    });
+  }
+
+  async function idbGet(key) {
+    const db = await openDB();
+    return new Promise((resolve, reject) => {
+      const tx = db.transaction(STORE, 'readonly');
+      const req = tx.objectStore(STORE).get(key);
+      req.onsuccess = () => {
+        const v = req.result;
+        if (!v) { resolve(null); return; }
+        if (v instanceof Blob) { resolve({ blob: v, transform: defaultTransform() }); return; }
+        v.transform = fillTransform(v.transform);
+        resolve(v);
+      };
+      req.onerror = () => reject(req.error);
+    });
+  }
+
+  function defaultTransform() { return { scale: 1, x: 0, y: 0, rotate: 0, flipH: false, flipV: false }; }
+
+  // 补全旧记录缺失的字段
+  function fillTransform(t) {
+    t = t || {};
+    return {
+      scale: typeof t.scale === 'number' ? t.scale : 1,
+      x: typeof t.x === 'number' ? t.x : 0,
+      y: typeof t.y === 'number' ? t.y : 0,
+      rotate: typeof t.rotate === 'number' ? t.rotate : 0,
+      flipH: !!t.flipH,
+      flipV: !!t.flipV
+    };
+  }
+
+  async function idbDelete(key) {
+    const db = await openDB();
+    return new Promise((resolve, reject) => {
+      const tx = db.transaction(STORE, 'readwrite');
+      tx.objectStore(STORE).delete(key);
+      tx.oncomplete = () => resolve();
+      tx.onerror = () => reject(tx.error);
+    });
+  }
+
+  // ── HEIC 检测与转换 ──
+  function isHeic(file) {
+    const name = (file.name || '').toLowerCase();
+    return file.type === 'image/heic' || file.type === 'image/heif' ||
+           name.endsWith('.heic') || name.endsWith('.heif');
+  }
+
+  async function normalizeImage(file) {
+    // HEIC → JPEG(quality 0.92,视觉无损)。其它格式原样返回。
+    if (isHeic(file)) {
+      const mod = window.__heicModule ? await window.__heicModule : null;
+      if (!mod || !mod.HeifDecoder) {
+        throw new Error('HEIC converter unavailable');
+      }
+      const buffer = await file.arrayBuffer();
+      const decoder = new mod.HeifDecoder();
+      const images = decoder.decode(new Uint8Array(buffer));
+      if (!images || !images.length) throw new Error('HEIC decode failed');
+      const img = images[0];
+      const w = img.get_width();
+      const h = img.get_height();
+
+      const canvas = document.createElement('canvas');
+      canvas.width = w;
+      canvas.height = h;
+      const ctx = canvas.getContext('2d');
+      const imageData = ctx.createImageData(w, h);
+
+      await new Promise((resolve, reject) => {
+        img.display(imageData, (displayData) => {
+          if (!displayData) { reject(new Error('HEIC render failed')); return; }
+          resolve(displayData);
+        });
+      });
+      ctx.putImageData(imageData, 0, 0);
+
+      const blob = await new Promise((resolve) =>
+        canvas.toBlob(resolve, 'image/jpeg', 0.92)
+      );
+      if (!blob) throw new Error('JPEG encode failed');
+      return blob;
+    }
+    return file;
+  }
+
+  // ── 渲染媒体到某个 slot ──
+  // 每个 slot 当前的媒体状态:{ blob, transform, isVideo }
+  const slotState = new Map();
+
+  function renderMedia(slot, record) {
+    const blob = record.blob;
+    const transform = record.transform || defaultTransform();
+    const isVideo = blob.type.startsWith('video/');
+    const url = URL.createObjectURL(blob);
+
+    slotState.set(slot.id, { blob, transform, isVideo });
+
+    // 清掉旧内容(后面重建 controls / 网格 / 工具条)
+    const inner = slot.querySelector('.us-inner');
+    inner.innerHTML = '';
+
+    const isBugsMode = slot.dataset.mode === 'bugs';
+
+    if (isVideo) {
+      const v = document.createElement('video');
+      v.playsInline = true;
+      v.setAttribute('playsinline', '');
+      v.draggable = false;
+      v.muted = true;         // 静音播放(悬停触发,无需用户额外操作即可播放)
+      v.setAttribute('muted', '');
+
+      if (isBugsMode) {
+        // Bugs 模式:不自动播放,鼠标悬停才播放。容器是固定的 1:1 黑底框(和 Palette
+        // 一致),视频始终用 object-fit:contain 完整显示在黑底上 —— 比例吻合就边到边
+        // 铺满,不吻合就留出黑边,但绝不裁切、不变形、不依赖其它槽位的视频比例。
+        v.autoplay = false;
+        v.loop = true;
+        v.style.width = '100%';
+        v.style.height = '100%';
+        v.style.objectFit = 'contain';
+        v.style.opacity = '0';
+        inner.appendChild(v);
+
+        function onBugsVideoReady() {
+          const nw = v.videoWidth, nh = v.videoHeight;
+          const st = slotState.get(slot.id);
+          if (st) st.natural = { w: nw, h: nh };
+          v.style.opacity = '1';
+        }
+        if (v.readyState >= 1 && v.videoWidth) {
+          v.src = url; onBugsVideoReady();
+        } else {
+          v.onloadedmetadata = onBugsVideoReady;
+          v.src = url;
+        }
+
+        buildControls(slot, true);
+        restoreCover(slot); // 恢复已上传的封面(若有)
+
+        // 播放提示图标(小三角形,提示这是可悬停播放的视频)
+        const hint = document.createElement('div');
+        hint.className = 'us-playhint';
+        hint.innerHTML = '<svg viewBox="0 0 10 10"><polygon points="0,0 10,5 0,10"/></svg>';
+        inner.appendChild(hint);
+
+        return; // bugs 模式不走下面通用的 transform/裁剪逻辑
+      }
+
+      // ── 非 bugs 模式的视频(原有行为):自动播放 + 播完静止1秒再重播 ──
+      v.autoplay = true;
+      v.loop = false;
+      v.style.opacity = '0'; // 尺寸就绪前先隐藏,避免闪一下巨图
+      inner.appendChild(v);
+
+      // 播完 → 静止 1 秒 → 重播
+      const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      v.addEventListener('ended', () => {
+        if (reduceMotion) return; // 尊重减少动态偏好:播一次即停
+        setTimeout(() => {
+          v.currentTime = 0;
+          v.play().catch(() => {});
+        }, 1000);
+      });
+
+      function onVideoReady() {
+        // 和图片一样:按视频真实像素尺寸定位(而非取景框尺寸),这样裁剪时
+        // 缩放/拖动才能触达画面任何区域,而不是被预裁剪锁死在一角。
+        const nw = v.videoWidth, nh = v.videoHeight;
+        v.style.width = nw + 'px';
+        v.style.height = nh + 'px';
+        v.style.marginLeft = (-nw / 2) + 'px';
+        v.style.marginTop = (-nh / 2) + 'px';
+        const st = slotState.get(slot.id);
+        if (st) st.natural = { w: nw, h: nh };
+        applyTransform(slot, (st ? st.transform : transform));
+        v.style.opacity = '1';
+        v.play().catch(() => {});
+      }
+      if (v.readyState >= 1 && v.videoWidth) {
+        v.src = url; onVideoReady();
+      } else {
+        v.onloadedmetadata = onVideoReady;
+        v.src = url;
+      }
+    } else {
+      const img = document.createElement('img');
+      img.alt = slot.getAttribute('data-placeholder') || '';
+      img.draggable = false;
+      img.style.opacity = '0'; // 尺寸就绪前先隐藏,避免闪一下巨图
+      inner.appendChild(img);
+
+      function onReady() {
+        // 记录原图真实像素尺寸,并按此尺寸(而非取景框尺寸)定位 —— 这样全部像素
+        // 都在,之后的缩放/拖动才能触达照片的任意区域,而不是被预裁剪锁死在一角。
+        const nw = img.naturalWidth, nh = img.naturalHeight;
+        img.style.width = nw + 'px';
+        img.style.height = nh + 'px';
+        img.style.marginLeft = (-nw / 2) + 'px';
+        img.style.marginTop = (-nh / 2) + 'px';
+        const st = slotState.get(slot.id);
+        if (st) st.natural = { w: nw, h: nh };
+        applyTransform(slot, (st ? st.transform : transform));
+        img.style.opacity = '1';
+      }
+      if (img.complete && img.naturalWidth) {
+        img.src = url; onReady();
+      } else {
+        img.onload = onReady;
+        img.src = url;
+      }
+    }
+
+    buildControls(slot, true);
+  }
+
+  // ── Bugs 模式专属:封面图 + 悬停播放 ──
+  // 封面存在单独的 IndexedDB key(slot.id + '::cover'),与视频本体分开存取。
+  function coverKey(slotId) { return slotId + '::cover'; }
+
+  // Bugs 三个模块统一用固定的 1:1 黑底框(和 Palette 完全一致的比例),不再根据
+  // 哪个视频先上传去动态推算"参照比例"——那套跨槽位联动逻辑复杂、时序上容易出岔子。
+  // 现在每个视频固定用 object-fit:contain 在这个黑底框里完整显示:比例吻合就边到边
+  // 铺满(视觉上和 cover 效果一样),不吻合就留出上下或左右的黑边,但绝不裁切、不变形。
+
+  function renderCover(slot, blob) {
+    const inner = slot.querySelector('.us-inner');
+    let img = inner.querySelector('.us-cover');
+    if (img) img.remove();
+    img = document.createElement('img');
+    img.className = 'us-cover';
+    img.alt = '';
+    img.draggable = false;
+    img.src = URL.createObjectURL(blob);
+    inner.appendChild(img);
+  }
+
+  async function restoreCover(slot) {
+    try {
+      const saved = await idbGet(coverKey(slot.id));
+      if (saved && saved.blob) renderCover(slot, saved.blob);
+    } catch (err) { /* 没有封面,忽略 */ }
+  }
+
+  async function handleCoverFile(slot, file) {
+    if (!file || !(file.type.startsWith('image/') || isHeic(file))) return;
+    try {
+      if (isHeic(file)) showBusy(slot, 'Converting…');
+      const blob = await normalizeImage(file);
+      await idbSet(coverKey(slot.id), { blob });
+      hideBusy(slot);
+      renderCover(slot, blob);
+    } catch (err) {
+      hideBusy(slot);
+      console.error('Cover upload failed for', slot.id, err);
+    }
+  }
+
+  // 悬停播放:鼠标进入播放(隐藏封面),离开暂停并回到起始帧(封面重新显示)。
+  // 只在 initSlot 时绑定一次,避免每次换视频都重复挂监听。
+  function bindBugsHover(slot) {
+    slot.addEventListener('mouseenter', () => {
+      const v = slot.querySelector('video');
+      if (!v || cropping) return;
+      slot.classList.add('us-playing');
+      v.currentTime = 0;
+      v.play().catch(() => {});
+    });
+    slot.addEventListener('mouseleave', () => {
+      const v = slot.querySelector('video');
+      if (!v) return;
+      slot.classList.remove('us-playing');
+      v.pause();
+      v.currentTime = 0;
+    });
+  }
+
+  // 取景框当前尺寸(用于计算铺满缩放和限位)。取不到时给个安全兜底,避免除零。
+  function getFrameRect(slot) {
+    const r = slot.getBoundingClientRect();
+    if (r.width > 0 && r.height > 0) return { w: r.width, h: r.height };
+    return { w: 16, h: 9 };
+  }
+
+  // 让原图刚好"铺满"取景框所需的基础缩放(相当于 object-fit:cover 的效果),
+  // 但这里只是个缩放系数,原图全部像素依旧保留、可通过继续放大后拖动触达。
+  function baseCoverScale(slot, natural) {
+    const frame = getFrameRect(slot);
+    if (!natural || !natural.w || !natural.h) return 1;
+    return Math.max(frame.w / natural.w, frame.h / natural.h);
+  }
+
+  // 取出当前 slot 里的可编辑媒体元素(图片或视频,二者只会存在其一)
+  function getMediaEl(slot) {
+    return slot.querySelector('img') || slot.querySelector('video');
+  }
+
+  // 把 transform 应用到媒体(平移 + 旋转 + 缩放 + 翻转)—— 图片和视频通用
+  function applyTransform(slot, t) {
+    const el = getMediaEl(slot);
+    if (!el) return;
+    const state = slotState.get(slot.id);
+    const natural = state && state.natural;
+    const base = baseCoverScale(slot, natural);
+    const fx = t.flipH ? -1 : 1;
+    const fy = t.flipV ? -1 : 1;
+    // 顺序:先平移(屏幕/世界坐标系,拖动方向直观、不受旋转翻转影响)
+    // → 旋转 → 缩放(基础铺满系数 × 用户缩放)→ 翻转
+    el.style.transform =
+      'translate(' + t.x + '%, ' + t.y + '%) ' +
+      'rotate(' + t.rotate + 'deg) ' +
+      'scale(' + (base * t.scale) + ') ' +
+      'scaleX(' + fx + ') scaleY(' + fy + ')';
+  }
+
+  // 旋转到任意角度时,为盖住取景框四角所需的最小缩放(相对"已铺满"状态的额外倍数)
+  function minScaleForRotation(deg, slot) {
+    const rad = Math.abs(deg % 180) * Math.PI / 180;
+    const frame = getFrameRect(slot);
+    const w = frame.w, h = frame.h;
+    const cos = Math.abs(Math.cos(rad)), sin = Math.abs(Math.sin(rad));
+    const scaleW = (w * cos + h * sin) / w;
+    const scaleH = (w * sin + h * cos) / h;
+    return Math.max(scaleW, scaleH);
+  }
+
+  // 严谨检查:给定像素位移(dx,dy)、旋转角、渲染尺寸、取景框,画面是否真的盖住
+  // 取景框的全部四个角(而不只是外接矩形近似 —— 外接矩形覆盖不代表四角真的被盖住,
+  // 旋转矩形的角会"切掉"外接矩形的一部分,必须逐角验证)。
+  function coversAllCorners(dx, dy, renderedW, renderedH, frame, cos, sin) {
+    const hw = frame.w / 2, hh = frame.h / 2;
+    const corners = [[hw, hh], [hw, -hh], [-hw, hh], [-hw, -hh]];
+    const halfW = renderedW / 2 + 0.02, halfH = renderedH / 2 + 0.02; // 小容差防止浮点误差误判
+    for (const [fx, fy] of corners) {
+      // 把取景框角点变换到画面自身(未旋转)坐标系,看是否落在画面范围内
+      const lx = (fx - dx) * cos + (fy - dy) * sin;
+      const ly = -(fx - dx) * sin + (fy - dy) * cos;
+      if (Math.abs(lx) > halfW || Math.abs(ly) > halfH) return false;
+    }
+    return true;
+  }
+
+  // 限制缩放与位移:保证不露白边,同时让位移范围覆盖原图全部像素(不再被预裁剪锁死)。
+  // x/y 的百分比以"原图自身尺寸"为基准(而不是取景框尺寸),缩放到多大就能拖多远。
+  function clampTransform(t, slot) {
+    const rotate = t.rotate || 0;
+    const floor = slot ? minScaleForRotation(rotate, slot) : 1;
+    const scale = Math.min(6, Math.max(floor, t.scale));
+
+    let x = t.x, y = t.y;
+    if (slot) {
+      const state = slotState.get(slot.id);
+      const natural = state && state.natural;
+      if (natural && natural.w && natural.h) {
+        const frame = getFrameRect(slot);
+        const base = baseCoverScale(slot, natural);
+        const total = base * scale;
+        const renderedW = natural.w * total;
+        const renderedH = natural.h * total;
+        // x/y(百分比,基准是原图自身尺寸)换算成像素位移 —— 注意 CSS 的
+        // translate(%) 是相对元素未缩放的原始尺寸解析的,不受 scale() 影响。
+        const dxRaw = (t.x / 100) * natural.w;
+        const dyRaw = (t.y / 100) * natural.h;
+        const rad = rotate * Math.PI / 180;
+        const cos = Math.cos(rad), sin = Math.sin(rad);
+
+        let factor = 1;
+        if (!coversAllCorners(dxRaw, dyRaw, renderedW, renderedH, frame, cos, sin)) {
+          // 二分查找:在当前拖动方向上,能安全走多远(0~1 的比例)而不露白边。
+          // pan=0 时必然满足(缩放下限已保证四角覆盖),所以下界 0 总是安全的。
+          let lo = 0, hi = 1;
+          for (let i = 0; i < 30; i++) {
+            const mid = (lo + hi) / 2;
+            if (coversAllCorners(dxRaw * mid, dyRaw * mid, renderedW, renderedH, frame, cos, sin)) {
+              lo = mid;
+            } else {
+              hi = mid;
+            }
+          }
+          factor = lo;
+        }
+        x = (dxRaw * factor) / natural.w * 100;
+        y = (dyRaw * factor) / natural.h * 100;
+      }
+    }
+    return { scale, x, y, rotate: t.rotate || 0, flipH: !!t.flipH, flipV: !!t.flipV };
+  }
+
+  const ICON = {
+    rotL: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14 4 9l5-5"/><path d="M4 9h11a5 5 0 0 1 5 5v2a5 5 0 0 1-5 5H9"/></svg>',
+    rotR: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 14 5-5-5-5"/><path d="M20 9H9a5 5 0 0 0-5 5v2a5 5 0 0 0 5 5h6"/></svg>',
+    flipH: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18"/><path d="M16 7l4 5-4 5"/><path d="M8 7l-4 5 4 5"/></svg>',
+    flipV: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h18"/><path d="M7 8l5-4 5 4"/><path d="M7 16l5 4 5-4"/></svg>'
+  };
+
+  let cropping = null; // { slot, working, grid, bar, cleanup }
+
+  // 兼容旧函数名
+  function enterCropMode(slot) { enterEditMode(slot); }
+
+  function enterEditMode(slot) {
+    if (cropping) exitEditMode(false); // 一次只编辑一个
+    const state = slotState.get(slot.id);
+    if (!state) return;
+
+    const working = fillTransform(Object.assign({}, state.transform));
+    // 修复:进入编辑时若没有放大余量(scale≈1),给一点默认放大,保证能立刻拖动构图
+    if (working.scale < 1.04) working.scale = 1.06;
+    slot.classList.add('us-cropping');
+
+    const grid = document.createElement('div');
+    grid.className = 'us-cropgrid';
+    slot.appendChild(grid);
+
+    const bar = document.createElement('div');
+    bar.className = 'us-cropbar';
+    bar.innerHTML =
+      '<div class="us-sliderrow">' +
+        '<label>Zoom</label>' +
+        '<input type="range" class="us-range us-zoom" min="1" max="4" step="0.01">' +
+        '<span class="us-rangeval us-zoomval"></span>' +
+      '</div>' +
+      '<div class="us-sliderrow">' +
+        '<label>Angle</label>' +
+        '<input type="range" class="us-range us-angle" min="-45" max="45" step="0.5">' +
+        '<span class="us-rangeval us-angleval"></span>' +
+      '</div>' +
+      '<div class="us-btnrow">' +
+        '<button class="us-tool us-rotl" title="Rotate left 90°">' + ICON.rotL + '90°</button>' +
+        '<button class="us-tool us-rotr" title="Rotate right 90°">' + ICON.rotR + '90°</button>' +
+        '<button class="us-tool us-fliph" title="Flip horizontal">' + ICON.flipH + 'Flip</button>' +
+        '<button class="us-tool us-flipv" title="Flip vertical">' + ICON.flipV + 'Flip</button>' +
+        '<span class="us-spacer"></span>' +
+        '<button class="us-cropbtn cancel">Cancel</button>' +
+        '<button class="us-cropbtn done">Done</button>' +
+      '</div>';
+    slot.appendChild(bar);
+
+    const zoom = bar.querySelector('.us-zoom');
+    const zoomVal = bar.querySelector('.us-zoomval');
+    const angle = bar.querySelector('.us-angle');
+    const angleVal = bar.querySelector('.us-angleval');
+    const flipHBtn = bar.querySelector('.us-fliph');
+    const flipVBtn = bar.querySelector('.us-flipv');
+
+    // working.rotate 拆成 90° 步进(quarter)+ 微调角度(fine, -45..45)
+    let quarter = Math.round(working.rotate / 90) * 90;
+    let fine = working.rotate - quarter;
+    if (fine > 45) { fine -= 90; quarter += 90; }
+    if (fine < -45) { fine += 90; quarter -= 90; }
+
+    function syncControls() {
+      zoom.value = working.scale;
+      zoomVal.textContent = working.scale.toFixed(2) + '×';
+      angle.value = fine;
+      angleVal.textContent = (fine > 0 ? '+' : '') + fine.toFixed(1) + '°';
+      flipHBtn.classList.toggle('active', working.flipH);
+      flipVBtn.classList.toggle('active', working.flipV);
+    }
+
+    function refresh() {
+      working.rotate = quarter + fine;
+      Object.assign(working, clampTransform(working, slot));
+      applyTransform(slot, working);
+      syncControls();
+    }
+    refresh();
+
+    // 缩放滑块
+    zoom.addEventListener('input', (e) => {
+      e.stopPropagation();
+      working.scale = parseFloat(zoom.value);
+      refresh();
+    });
+    // 微调角度滑块
+    angle.addEventListener('input', (e) => {
+      e.stopPropagation();
+      fine = parseFloat(angle.value);
+      refresh();
+    });
+    [zoom, angle].forEach((el) => el.addEventListener('click', (e) => e.stopPropagation()));
+
+    // 90° 旋转
+    bar.querySelector('.us-rotl').addEventListener('click', (e) => {
+      e.stopPropagation(); quarter -= 90; refresh();
+    });
+    bar.querySelector('.us-rotr').addEventListener('click', (e) => {
+      e.stopPropagation(); quarter += 90; refresh();
+    });
+    // 翻转
+    flipHBtn.addEventListener('click', (e) => {
+      e.stopPropagation(); working.flipH = !working.flipH; refresh();
+    });
+    flipVBtn.addEventListener('click', (e) => {
+      e.stopPropagation(); working.flipV = !working.flipV; refresh();
+    });
+
+    // 滚轮缩放
+    function onWheel(e) {
+      e.preventDefault();
+      working.scale += (e.deltaY < 0 ? 0.08 : -0.08);
+      refresh();
+    }
+    slot.addEventListener('wheel', onWheel, { passive: false });
+
+    // 拖动平移(鼠标 + 触摸)。translate 是变换链最外层(世界坐标系),
+    // 所以屏幕位移可以直接换算,不需要按旋转/翻转反解方向,拖动始终跟手。
+    let dragging = false, lastX = 0, lastY = 0;
+    function pointerDown(e) {
+      if (e.target.closest('.us-cropbar')) return;
+      dragging = true;
+      const p = e.touches ? e.touches[0] : e;
+      lastX = p.clientX; lastY = p.clientY;
+      e.preventDefault();
+    }
+    function pointerMove(e) {
+      if (!dragging) return;
+      const p = e.touches ? e.touches[0] : e;
+      const dxScreen = (p.clientX - lastX);
+      const dyScreen = (p.clientY - lastY);
+      const st = slotState.get(slot.id);
+      const natural = st && st.natural;
+      if (natural && natural.w && natural.h) {
+        // CSS 的 translate(%) 是相对元素"未缩放的原始尺寸"计算的,不受同一串
+        // transform 里 scale() 的影响 —— 所以这里直接换算,不需要再除以缩放系数,
+        // 这样鼠标移动多少屏幕像素,画面就跟着移动多少像素,手感精准跟手。
+        working.x += (dxScreen / natural.w) * 100;
+        working.y += (dyScreen / natural.h) * 100;
+      }
+      lastX = p.clientX; lastY = p.clientY;
+      refresh();
+    }
+    function pointerUp() { dragging = false; }
+
+    slot.addEventListener('mousedown', pointerDown);
+    window.addEventListener('mousemove', pointerMove);
+    window.addEventListener('mouseup', pointerUp);
+    slot.addEventListener('touchstart', pointerDown, { passive: false });
+    window.addEventListener('touchmove', pointerMove, { passive: false });
+    window.addEventListener('touchend', pointerUp);
+
+    bar.querySelector('.done').addEventListener('click', (e) => {
+      e.stopPropagation();
+      exitEditMode(true);
+    });
+    bar.querySelector('.cancel').addEventListener('click', (e) => {
+      e.stopPropagation();
+      exitEditMode(false);
+    });
+
+    function cleanup() {
+      slot.removeEventListener('wheel', onWheel);
+      slot.removeEventListener('mousedown', pointerDown);
+      window.removeEventListener('mousemove', pointerMove);
+      window.removeEventListener('mouseup', pointerUp);
+      slot.removeEventListener('touchstart', pointerDown);
+      window.removeEventListener('touchmove', pointerMove);
+      window.removeEventListener('touchend', pointerUp);
+    }
+
+    cropping = { slot, working, grid, bar, cleanup };
+  }
+
+  // 兼容旧函数名
+  async function exitCropMode(save) { return exitEditMode(save); }
+
+  async function exitEditMode(save) {
+    if (!cropping) return;
+    const { slot, working, grid, bar, cleanup } = cropping;
+    cleanup();
+    grid.remove();
+    bar.remove();
+    slot.classList.remove('us-cropping');
+
+    const state = slotState.get(slot.id);
+    if (save && state) {
+      const finalT = clampTransform(working, slot);
+      state.transform = finalT;
+      applyTransform(slot, finalT);
+      try {
+        await idbSet(slot.id, { blob: state.blob, transform: finalT });
+      } catch (err) { console.error('Save edit failed', slot.id, err); }
+    } else if (state) {
+      applyTransform(slot, state.transform); // 还原
+    }
+    cropping = null;
+  }
+
+  function buildControls(slot, hasMedia) {
+    let controls = slot.querySelector('.us-controls');
+    if (controls) controls.remove();
+    if (!hasMedia) return;
+
+    const isBugsMode = slot.dataset.mode === 'bugs';
+
+    controls = document.createElement('div');
+    controls.className = 'us-controls';
+
+    if (isBugsMode) {
+      // Bugs 模式:没有裁剪(原始尺寸展示),改为可上传封面图
+      const coverBtn = document.createElement('button');
+      coverBtn.className = 'us-btn';
+      coverBtn.textContent = 'Cover';
+      coverBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        triggerPicker(slot, 'cover');
+      });
+      controls.appendChild(coverBtn);
+    } else {
+      // 编辑按钮 —— 图片和视频都支持(裁剪/拖动/缩放/旋转/翻转)
+      const editBtn = document.createElement('button');
+      editBtn.className = 'us-btn';
+      editBtn.textContent = 'Edit';
+      editBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        enterEditMode(slot);
+      });
+      controls.appendChild(editBtn);
+    }
+
+    const replaceBtn = document.createElement('button');
+    replaceBtn.className = 'us-btn';
+    replaceBtn.textContent = 'Replace';
+    replaceBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      triggerPicker(slot, 'media');
+    });
+
+    const clearBtn = document.createElement('button');
+    clearBtn.className = 'us-btn';
+    clearBtn.textContent = 'Clear';
+    clearBtn.addEventListener('click', async (e) => {
+      e.stopPropagation();
+      await idbDelete(slot.id);
+      if (isBugsMode) await idbDelete(coverKey(slot.id));
+      clearSlot(slot);
+    });
+
+    controls.appendChild(replaceBtn);
+    controls.appendChild(clearBtn);
+    slot.appendChild(controls);
+  }
+
+  function clearSlot(slot) {
+    slotState.delete(slot.id);
+    const inner = slot.querySelector('.us-inner');
+    inner.innerHTML = '<div class="us-placeholder">' +
+      (slot.getAttribute('data-placeholder') || 'Drop image or video') + '</div>';
+    if (slot.dataset.mode === 'bugs') {
+      // 清空后恢复默认占位比例,不留上一个视频残留的尺寸
+      slot.style.width = '100%';
+      slot.style.height = 'auto';
+      slot.style.aspectRatio = '1 / 1';
+    }
+    buildControls(slot, false);
+  }
+
+  function showBusy(slot, text) {
+    let b = slot.querySelector('.us-busy');
+    if (!b) {
+      b = document.createElement('div');
+      b.className = 'us-busy';
+      slot.appendChild(b);
+    }
+    b.textContent = text || 'Working…';
+  }
+  function hideBusy(slot) {
+    const b = slot.querySelector('.us-busy');
+    if (b) b.remove();
+  }
+
+  // ── 处理一个文件(上传或拖拽)──
+  async function handleFile(slot, file) {
+    if (!file) return;
+    const isVideo = file.type.startsWith('video/');
+    const isImage = file.type.startsWith('image/') || isHeic(file);
+    if (!isVideo && !isImage) return;
+
+    try {
+      let blob = file;
+      if (isImage) {
+        if (isHeic(file)) showBusy(slot, 'Converting…');
+        blob = await normalizeImage(file);
+      }
+      const record = { blob, transform: defaultTransform() };
+      await idbSet(slot.id, record);   // 持久化(含默认构图)
+      hideBusy(slot);
+      renderMedia(slot, record);
+    } catch (err) {
+      hideBusy(slot);
+      console.error('Upload failed for', slot.id, err);
+      showBusy(slot, 'Failed — retry');
+      setTimeout(() => hideBusy(slot), 1800);
+    }
+  }
+
+  // ── 文件选择器 ──
+  let sharedInput = null;
+  let coverInput = null;
+  let activeSlot = null;
+  function triggerPicker(slot, kind) {
+    activeSlot = slot;
+    if (kind === 'cover') {
+      if (!coverInput) {
+        coverInput = document.createElement('input');
+        coverInput.type = 'file';
+        coverInput.accept = 'image/*,.heic,.heif';
+        coverInput.style.display = 'none';
+        document.body.appendChild(coverInput);
+        coverInput.addEventListener('change', () => {
+          if (activeSlot && coverInput.files[0]) {
+            handleCoverFile(activeSlot, coverInput.files[0]);
+          }
+          coverInput.value = '';
+        });
+      }
+      coverInput.click();
+      return;
+    }
+    if (!sharedInput) {
+      sharedInput = document.createElement('input');
+      sharedInput.type = 'file';
+      sharedInput.accept = 'image/*,.heic,.heif,video/*';
+      sharedInput.style.display = 'none';
+      document.body.appendChild(sharedInput);
+      sharedInput.addEventListener('change', () => {
+        if (activeSlot && sharedInput.files[0]) {
+          handleFile(activeSlot, sharedInput.files[0]);
+        }
+        sharedInput.value = '';
+      });
+    }
+    sharedInput.click();
+  }
+
+  // ── 初始化每个 slot ──
+  async function initSlot(slot) {
+    // 设置宽高比(来自 data-ar)
+    const ar = slot.getAttribute('data-ar');
+    if (ar && !slot.style.aspectRatio) {
+      slot.style.aspectRatio = ar.replace('/', ' / ');
+    }
+
+    // 内层容器 + 占位
+    const inner = document.createElement('div');
+    inner.className = 'us-inner';
+    inner.innerHTML = '<div class="us-placeholder">' +
+      (slot.getAttribute('data-placeholder') || 'Drop image or video') + '</div>';
+    slot.appendChild(inner);
+
+    // 点击上传
+    slot.addEventListener('click', () => {
+      if (cropping) return;
+      if (slotState.has(slot.id)) return;
+      triggerPicker(slot);
+    });
+
+    // 拖拽上传
+    slot.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      slot.classList.add('us-dragover');
+    });
+    slot.addEventListener('dragleave', () => slot.classList.remove('us-dragover'));
+    slot.addEventListener('drop', (e) => {
+      e.preventDefault();
+      slot.classList.remove('us-dragover');
+      if (e.dataTransfer.files[0]) handleFile(slot, e.dataTransfer.files[0]);
+    });
+
+    // Bugs 模式:悬停播放(只绑定一次,渲染视频时动态判断当前是否有视频)
+    if (slot.dataset.mode === 'bugs') {
+      bindBugsHover(slot);
+    }
+
+    // 恢复已保存的媒体
+    try {
+      const saved = await idbGet(slot.id);
+      if (saved) renderMedia(slot, saved);
+    } catch (err) {
+      console.warn('Could not restore', slot.id, err);
+    }
+  }
+
+  // ── 导出:把当前所有媒体 + 构图打包成自包含 HTML ──
+  function blobToDataURL(blob) {
+    return new Promise((resolve, reject) => {
+      const r = new FileReader();
+      r.onload = () => resolve(r.result);
+      r.onerror = () => reject(r.error);
+      r.readAsDataURL(blob);
+    });
+  }
+
+  async function exportSite(btn) {
+    const slots = Array.from(document.querySelectorAll('upload-slot'));
+    const payload = {};
+    let count = 0;
+    for (const slot of slots) {
+      const state = slotState.get(slot.id);
+      if (!state || !state.blob) continue;
+      const dataUrl = await blobToDataURL(state.blob);
+      payload[slot.id] = { data: dataUrl, transform: state.transform, isVideo: state.isVideo };
+      count++;
+      if (btn) btn.textContent = 'Packing ' + count + '…';
+
+      // Bugs 模式:一并打包封面图(若有上传)
+      if (slot.dataset.mode === 'bugs') {
+        try {
+          const cover = await idbGet(coverKey(slot.id));
+          if (cover && cover.blob) {
+            const coverDataUrl = await blobToDataURL(cover.blob);
+            payload[coverKey(slot.id)] = { data: coverDataUrl, isCover: true };
+          }
+        } catch (err) { /* 没有封面,跳过 */ }
+      }
+    }
+
+    // Projects 页面的四个系列相册:顺序 + 每一项的数据一并打包
+    const galleries = {};
+    for (const series of PROJECT_SERIES) {
+      const state = galleryState[series];
+      if (!state) continue;
+      const items = {};
+      for (const id of state.order) {
+        const item = state.items.get(id);
+        if (!item) continue;
+        const dataUrl = await blobToDataURL(item.blob);
+        const entry = { data: dataUrl, isVideo: item.isVideo, ratio: item.ratio };
+        // Bugs 系列视频的封面(若有)一并打包,让导出文件在全新环境打开也能恢复
+        if (series === 'bugs' && item.isVideo) {
+          try {
+            const coverRec = await idbGetRaw(galleryItemCoverKey(series, id));
+            if (coverRec && coverRec.blob) {
+              entry.cover = await blobToDataURL(coverRec.blob);
+            }
+          } catch (err) { /* 没有封面,跳过 */ }
+        }
+        items[id] = entry;
+        count++;
+        if (btn) btn.textContent = 'Packing ' + count + '…';
+      }
+      galleries[series] = { order: state.order.slice(), items };
+    }
+    payload.__galleries__ = galleries;
+
+    // 首页可编辑的文字(Latest observations 说明等)也一并打包,和照片视频
+    // 享有同等的持久化保证——不然导出重开后这些修改会丢失。
+    const texts = {};
+    for (const el of document.querySelectorAll('.editable-text')) {
+      const key = el.dataset.editkey;
+      if (!key) continue;
+      try {
+        const saved = await idbGetRaw(editableTextKey(key));
+        if (typeof saved === 'string') texts[key] = saved;
+      } catch (err) { /* 没改过,跳过 */ }
+    }
+    payload.__texts__ = texts;
+
+    const clone = document.documentElement.cloneNode(true);
+    const eb = clone.querySelector('#us-exportbar');
+    if (eb) eb.remove();
+    clone.querySelectorAll('upload-slot .us-inner, upload-slot .us-controls, upload-slot .us-cropgrid, upload-slot .us-cropbar, upload-slot .us-busy')
+      .forEach((el) => el.remove());
+    clone.querySelectorAll('upload-slot').forEach((s) => { s.removeAttribute('style'); });
+    clone.querySelectorAll('.jgallery').forEach((el) => { el.innerHTML = ''; }); // 重新加载时由预置数据重建
+    // 不管导出这一刻正停留在哪个页面,导出文件都应该以"首页可见"作为默认打开状态,
+    // 否则(比如导出时正看着 Projects 页)这个临时状态会被固化进导出文件里。
+    clone.querySelectorAll('.page-view').forEach((p) => p.classList.remove('active'));
+    const cloneHome = clone.querySelector('#page-home');
+    if (cloneHome) cloneHome.classList.add('active');
+
+    // 把数据作为真实 script 节点插入 clone 的 body(避免字符串 replace 错位)。
+    // 转义 < 号,防止 payload 内容意外提前结束脚本标签。
+    const json = JSON.stringify(payload).replace(/</g, '\\u003c');
+    const dataEl = clone.ownerDocument.createElement('script');
+    dataEl.textContent = 'window.__PRELOADED_MEDIA__=' + json + ';';
+    const cloneBody = clone.querySelector('body');
+    cloneBody.appendChild(dataEl);
+
+    const html = '<!DOCTYPE html>\n' + clone.outerHTML;
+
+    const blob = new Blob([html], { type: 'text/html' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'Wei_Portfolio_export.html';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 2000);
+
+    if (btn) {
+      btn.textContent = count > 0 ? 'Exported \u2713' : 'Nothing to export';
+      setTimeout(() => { btn.textContent = 'Export site'; }, 2200);
+    }
+  }
+
+  function dataURLtoBlob(dataUrl) {
+    const [head, body] = dataUrl.split(',');
+    const mime = (head.match(/:(.*?);/) || [])[1] || 'application/octet-stream';
+    const bin = atob(body);
+    const arr = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; i++) arr[i] = bin.charCodeAt(i);
+    return new Blob([arr], { type: mime });
+  }
+
+  function buildExportBar() {
+    if (document.getElementById('us-exportbar')) return;
+    const bar = document.createElement('div');
+    bar.id = 'us-exportbar';
+    const btn = document.createElement('button');
+    btn.textContent = 'Export site';
+    btn.addEventListener('click', () => {
+      btn.disabled = true;
+      exportSite(btn).finally(() => { btn.disabled = false; });
+    });
+    bar.appendChild(btn);
+    document.body.appendChild(bar);
+  }
+
+  function init() {
+    // 若是导出文件启动:先把预置数据写回 IndexedDB,再正常初始化
+    const preloaded = window.__PRELOADED_MEDIA__;
+    const seed = (async () => {
+      if (!preloaded) return;
+      for (const id in preloaded) {
+        if (id === '__galleries__' || id === '__texts__') continue; // 格式不同,下面单独处理
+        const item = preloaded[id];
+        try {
+          await idbSet(id, { blob: dataURLtoBlob(item.data), transform: item.transform || defaultTransform() });
+        } catch (err) { console.warn('Seed failed', id, err); }
+      }
+      // Projects 页面各系列的相册:顺序 + 每一项写回 IndexedDB
+      const galleries = preloaded.__galleries__;
+      if (galleries) {
+        for (const series in galleries) {
+          const g = galleries[series];
+          try {
+            for (const id of g.order) {
+              const it = g.items[id];
+              if (!it) continue;
+              await idbSetRaw(galleryItemKey(series, id), { blob: dataURLtoBlob(it.data), isVideo: it.isVideo, ratio: it.ratio });
+              if (it.cover) {
+                await idbSetRaw(galleryItemCoverKey(series, id), { blob: dataURLtoBlob(it.cover) });
+              }
+            }
+            await idbSetRaw(galleryOrderKey(series), g.order.slice());
+          } catch (err) { console.warn('Gallery seed failed', series, err); }
+        }
+      }
+      // 首页可编辑文字:写回 IndexedDB,和照片视频一样在导出文件里保留修改。
+      const texts = preloaded.__texts__;
+      if (texts) {
+        for (const key in texts) {
+          try { await idbSetRaw(editableTextKey(key), texts[key]); } catch (err) { console.warn('Text seed failed', key, err); }
+        }
+      }
+    })();
+
+    seed.then(() => {
+      document.querySelectorAll('upload-slot').forEach(initSlot);
+      buildExportBar();
+      bindResizeHandler();
+      initProjectsPage();
+      bindPageNavTriggers();
+      initEditableTexts();
+    });
+  }
+
+  // 窗口尺寸变化(响应式布局、设备旋转等)后,取景框尺寸可能改变,
+  // 需要重新计算铺满缩放并重新应用 transform,保证发布后在各种视口下都不走样。
+  function bindResizeHandler() {
+    let raf = null;
+    window.addEventListener('resize', () => {
+      if (raf) cancelAnimationFrame(raf);
+      raf = requestAnimationFrame(() => {
+        slotState.forEach((state, id) => {
+          const slot = document.getElementById(id);
+          if (!slot) return;
+          if (slot.dataset.mode === 'bugs') return; // 原始尺寸展示,不走裁剪系统的 transform
+          applyTransform(slot, state.transform);
+        });
+      });
+    });
+  }
+
+  // ══════════════════════════════════════════════════════════════
+  // Projects 页面:顺排网格画廊(justified rows)
+  // 每个系列(belfast/interlude/palette/bugs)是一组可自由增删、拖拽排序的
+  // 照片/视频列表,不裁切、完整保留每一张的原始比例。上传格式识别/转换
+  // 复用主页同一套 isHeic / normalizeImage 逻辑。
+  // ══════════════════════════════════════════════════════════════
+
+  const PROJECT_SERIES = ['belfast', 'interlude', 'palette', 'bugs'];
+  const JGALLERY_COL_WIDTH = 260; // 目标列宽(px);实际列宽随容器宽度自适应,略有浮动
+  const JGALLERY_GAP = 3;
+  const JGALLERY_COLLAPSED_ROWS = 2; // 默认折叠时大约露出的"排数"(瀑布流没有严格行,按列宽估算)
+  const galleryState = {}; // series -> { order, items: Map, expanded: bool }
+
+  function galleryOrderKey(series) { return 'gallery:' + series + ':order'; }
+  function galleryItemKey(series, id) { return 'gallery:' + series + ':item:' + id; }
+
+  // 存取不带 blob/transform 包装的原始值(顺序数组、简单记录),复用同一个 IndexedDB store。
+  async function idbSetRaw(key, value) {
+    const db = await openDB();
+    return new Promise((resolve, reject) => {
+      const tx = db.transaction(STORE, 'readwrite');
+      tx.objectStore(STORE).put(value, key);
+      tx.oncomplete = () => resolve();
+      tx.onerror = () => reject(tx.error);
+    });
+  }
+  async function idbGetRaw(key) {
+    const db = await openDB();
+    return new Promise((resolve, reject) => {
+      const tx = db.transaction(STORE, 'readonly');
+      const req = tx.objectStore(STORE).get(key);
+      req.onsuccess = () => resolve(req.result !== undefined ? req.result : null);
+      req.onerror = () => reject(req.error);
+    });
+  }
+  async function idbDeleteRaw(key) {
+    const db = await openDB();
+    return new Promise((resolve, reject) => {
+      const tx = db.transaction(STORE, 'readwrite');
+      tx.objectStore(STORE).delete(key);
+      tx.oncomplete = () => resolve();
+      tx.onerror = () => reject(tx.error);
+    });
+  }
+
+  function debounce(fn, ms) {
+    let t = null;
+    return (...args) => { clearTimeout(t); t = setTimeout(() => fn(...args), ms); };
+  }
+
+  // 测出一张图片/一段视频的原始宽高比,顺排网格排布全靠这个数字。
+  function measureRatio(blob, isVideo) {
+    return new Promise((resolve) => {
+      const url = URL.createObjectURL(blob);
+      if (isVideo) {
+        const v = document.createElement('video');
+        v.onloadedmetadata = () => { resolve((v.videoWidth / v.videoHeight) || 1); URL.revokeObjectURL(url); };
+        v.onerror = () => { resolve(1); URL.revokeObjectURL(url); };
+        v.src = url;
+      } else {
+        const img = new Image();
+        img.onload = () => { resolve((img.naturalWidth / img.naturalHeight) || 1); URL.revokeObjectURL(url); };
+        img.onerror = () => { resolve(1); URL.revokeObjectURL(url); };
+        img.src = url;
+      }
+    });
+  }
+
+  // ── 瀑布流(Pinterest 风格)核心算法 ──
+  // 固定列宽,每张按自己的原始比例在这个列宽下算出高度,不再"同一行内互相
+  // 拉伸凑成统一高度"——纯粹按自己的比例走,贪心放进当前最短的那一列,
+  // 自然形成参差错落的瀑布流效果,完整保留每一张的原始比例。
+  // 列数设上限,宽屏也不会挤出七八列——列数封顶后,每列(每张照片)自然等比变大。
+  const JGALLERY_MAX_COLS = 5;
+
+  function computeMasonryColumns(containerWidth) {
+    if (!containerWidth) return { cols: 1, colWidth: JGALLERY_COL_WIDTH };
+    let cols = Math.max(1, Math.round((containerWidth + JGALLERY_GAP) / (JGALLERY_COL_WIDTH + JGALLERY_GAP)));
+    cols = Math.min(cols, JGALLERY_MAX_COLS);
+    const colWidth = (containerWidth - JGALLERY_GAP * (cols - 1)) / cols;
+    return { cols, colWidth };
+  }
+
+  // 把一组条目(贪心放进当前最短列)铺进 wrap 里,返回构建好的列元素数组。
+  function layoutMasonryInto(wrap, entries, series, cols, colWidth) {
+    const colHeights = new Array(cols).fill(0);
+    const colEls = [];
+    for (let i = 0; i < cols; i++) {
+      const colEl = document.createElement('div');
+      colEl.className = 'jgallery-col';
+      colEl.style.width = colWidth + 'px';
+      colEls.push(colEl);
+      wrap.appendChild(colEl);
+    }
+    entries.forEach((entry) => {
+      const shortest = colHeights.indexOf(Math.min(...colHeights));
+      const h = colWidth / (entry.ratio || 1);
+      if (entry.isAdd) {
+        const addEl = document.createElement('div');
+        addEl.className = 'jtile-add';
+        addEl.style.width = colWidth + 'px';
+        addEl.style.height = h + 'px';
+        addEl.textContent = '+ Add photo';
+        addEl.addEventListener('click', () => triggerGalleryPicker(series));
+        colEls[shortest].appendChild(addEl);
+      } else {
+        colEls[shortest].appendChild(buildGalleryTile(series, entry.id, entry.item, colWidth, h));
+      }
+      colHeights[shortest] += h + JGALLERY_GAP;
+    });
+  }
+
+  // 默认折叠:只显示前面完整的约 2 排,超出的直接不渲染(不是用高度裁切+渐隐
+  // 挡住半张照片那种做法)——这样露出来的每一张都是完整的,不会有被"腰斩"的照片。
+  // 前 cols*2 项按贪心铺列时,天然就是前两排各自占满一列,不会切到照片中间。
+  function renderGallery(series) {
+    const container = document.querySelector('.jgallery[data-series="' + series + '"]');
+    const state = galleryState[series];
+    if (!container || !state) return;
+
+    // 重建之前,先把上一轮已经加载出来的图片/视频释放掉(撤销 blob URL、取消懒加载
+    // 观察)——不然每次拖拽排序、上传、删除、缩放窗口都会重新渲染一遍,旧的
+    // blob URL 却一直占着内存不放,用得越久越卡,就是这么攒出来的。
+    container.querySelectorAll('img, video').forEach((el) => {
+      if (el.src && el.src.startsWith('blob:')) URL.revokeObjectURL(el.src);
+      galleryLazyObserver.unobserve(el);
+    });
+
+    const entries = state.order
+      .map((id) => {
+        const item = state.items.get(id);
+        return item ? { id, ratio: item.ratio || 1, item } : null;
+      })
+      .filter(Boolean);
+
+    container.innerHTML = '';
+    const wrap = document.createElement('div');
+    wrap.className = 'jgallery-masonry';
+    container.appendChild(wrap); // 先插入空容器,再测量它的实际可用宽度(已正确扣除父级 padding),
+                                  // 不能直接用 container.clientWidth——那个包含了左右 padding,
+                                  // 会让算出来的列宽比实际能放下的宽,导致最右一列溢出、要横向滚动才看得全。
+    const availWidth = wrap.clientWidth;
+
+    const { cols, colWidth } = computeMasonryColumns(availWidth);
+    const collapsedCount = cols * JGALLERY_COLLAPSED_ROWS;
+    const expanded = !!state.expanded;
+    const needsToggle = entries.length > collapsedCount;
+    const visible = (needsToggle && !expanded) ? entries.slice(0, collapsedCount) : entries.slice();
+    visible.push({ id: '__add__', ratio: 1, isAdd: true }); // 添加按钮始终跟在可见内容最后
+
+    layoutMasonryInto(wrap, visible, series, cols, colWidth);
+
+    if (needsToggle) {
+      const n = entries.length;
+      const toggle = document.createElement('button');
+      toggle.className = 'jgallery-toggle';
+      toggle.textContent = expanded ? 'Show less' : ('Show all ' + n + (n === 1 ? ' photo' : ' photos'));
+      toggle.addEventListener('click', () => {
+        state.expanded = !state.expanded;
+        renderGallery(series);
+      });
+      container.appendChild(toggle);
+    }
+  }
+
+  // ── 懒加载:照片/视频只有滚动到附近时才真正解码加载,而不是一次性全部加载。
+  // 这是"照片一多网站就卡"的另一大来源——保留原始分辨率的前提下,靠"按需加载"
+  // 而不是"降低画质"来保证流畅。视频额外做到:离开视口就暂停,省解码开销;
+  // 图片只需要触发一次加载,加载过就不用再管。 ──
+  const galleryLazyObserver = new IntersectionObserver((entries) => {
+    entries.forEach((entry) => {
+      const el = entry.target;
+      const hoverOnly = el.dataset && el.dataset.hoverPlay === 'true'; // Bugs 系列视频:只悬停播放
+      if (entry.isIntersecting) {
+        if (!el.src && el.__blob) {
+          el.src = URL.createObjectURL(el.__blob);
+          if (el.tagName === 'VIDEO' && !hoverOnly) {
+            const tryPlay = () => el.play().catch(() => {});
+            if (el.readyState >= 3) tryPlay();
+            el.addEventListener('canplay', tryPlay, { once: true });
+          }
+        } else if (el.tagName === 'VIDEO' && !hoverOnly) {
+          el.play().catch(() => {});
+        }
+      } else if (el.tagName === 'VIDEO' && el.src && !hoverOnly) {
+        el.pause(); // 滚出视口就暂停,不需要一直解码播放看不见的视频
+      }
+    });
+  }, { root: null, rootMargin: '600px 0px', threshold: 0.01 });
+
+  function galleryItemCoverKey(series, id) { return 'gallery:' + series + ':item:' + id + '::cover'; }
+
+  function buildGalleryTile(series, id, item, w, h) {
+    const tile = document.createElement('div');
+    tile.className = 'jtile';
+    tile.style.width = w + 'px';
+    tile.style.height = h + 'px';
+    tile.draggable = true;
+    tile.dataset.id = id;
+
+    // Bugs 系列的视频沿用首页 Bugs 区块那套设置:不自动播放,鼠标悬停才播放,
+    // 支持单独上传封面图——和 Interlude/Belfast/Palette 里"可见即播"的视频不同。
+    const isBugsVideo = item.isVideo && series === 'bugs';
+
+    if (item.isVideo) {
+      const v = document.createElement('video');
+      v.muted = true; v.loop = true; v.playsInline = true;
+      v.setAttribute('muted', ''); v.setAttribute('playsinline', '');
+      v.draggable = false;
+      v.__blob = item.blob; // 先不创建 URL,真正滚到附近时才加载解码
+      if (isBugsVideo) v.dataset.hoverPlay = 'true'; // 告诉懒加载观察器:只加载不自动播放
+      tile.appendChild(v);
+      galleryLazyObserver.observe(v);
+
+      if (isBugsVideo) {
+        tile.addEventListener('mouseenter', () => {
+          tile.classList.add('playing');
+          v.currentTime = 0;
+          v.play().catch(() => {});
+        });
+        tile.addEventListener('mouseleave', () => {
+          tile.classList.remove('playing');
+          v.pause();
+          v.currentTime = 0;
+        });
+
+        // 恢复已上传的封面(若有),静止时显示,悬停播放时淡出
+        idbGetRaw(galleryItemCoverKey(series, id)).then((rec) => {
+          if (rec && rec.blob) {
+            const cover = document.createElement('img');
+            cover.className = 'jtile-cover';
+            cover.alt = '';
+            cover.draggable = false;
+            cover.src = URL.createObjectURL(rec.blob);
+            tile.insertBefore(cover, tile.firstChild.nextSibling);
+          }
+        }).catch(() => {});
+
+        const coverBtn = document.createElement('button');
+        coverBtn.className = 'jtile-cover-btn';
+        coverBtn.textContent = 'Cover';
+        coverBtn.title = 'Upload cover image';
+        coverBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          triggerGalleryCoverPicker(series, id, tile);
+        });
+        tile.appendChild(coverBtn);
+      }
+    } else {
+      const img = document.createElement('img');
+      img.alt = '';
+      img.draggable = false;
+      img.__blob = item.blob;
+      tile.appendChild(img);
+      galleryLazyObserver.observe(img);
+    }
+
+    const removeBtn = document.createElement('button');
+    removeBtn.className = 'jtile-remove';
+    removeBtn.textContent = '\u00d7';
+    removeBtn.title = 'Remove';
+    removeBtn.addEventListener('click', async (e) => {
+      e.stopPropagation();
+      await removeGalleryItem(series, id);
+    });
+    tile.appendChild(removeBtn);
+
+
+    bindGalleryTileDrag(tile, series, id);
+    return tile;
+  }
+
+  // ── Bugs 系列视频封面:单独存取,不影响视频本体。选图后走和主页面同一套
+  // HEIC 识别/转换逻辑(isHeic / normalizeImage),上传完直接刷新那一张瓦片的封面。 ──
+  let galleryCoverInput = null;
+  let galleryCoverTarget = null;
+  function triggerGalleryCoverPicker(series, id, tile) {
+    galleryCoverTarget = { series, id, tile };
+    if (!galleryCoverInput) {
+      galleryCoverInput = document.createElement('input');
+      galleryCoverInput.type = 'file';
+      galleryCoverInput.accept = 'image/*,.heic,.heif';
+      galleryCoverInput.style.display = 'none';
+      document.body.appendChild(galleryCoverInput);
+      galleryCoverInput.addEventListener('change', async () => {
+        const file = galleryCoverInput.files[0];
+        galleryCoverInput.value = '';
+        if (!file || !galleryCoverTarget) return;
+        const { series, id, tile } = galleryCoverTarget;
+        try {
+          const blob = await normalizeImage(file);
+          await idbSetRaw(galleryItemCoverKey(series, id), { blob });
+          let cover = tile.querySelector('.jtile-cover');
+          if (cover) URL.revokeObjectURL(cover.src);
+          else {
+            cover = document.createElement('img');
+            cover.className = 'jtile-cover';
+            cover.alt = '';
+            cover.draggable = false;
+            tile.insertBefore(cover, tile.firstChild.nextSibling);
+          }
+          cover.src = URL.createObjectURL(blob);
+        } catch (err) { console.error('Gallery cover upload failed', err); }
+      });
+    }
+    galleryCoverInput.click();
+  }
+
+  // ── 拖拽排序:全页面自由拖动,松手时按"放在目标瓦片前/后"决定新顺序。
+  // 数组顺序就是唯一的排布依据,松手后顺排网格重新计算,自动回流成行——
+  // 不需要区分"上下"还是"左右",拖到哪张附近就插到哪。 ──
+  function bindGalleryTileDrag(tile, series, id) {
+    tile.addEventListener('dragstart', (e) => {
+      tile.classList.add('dragging');
+      e.dataTransfer.setData('text/gallery-item', id);
+      e.dataTransfer.setData('text/gallery-series', series);
+      e.dataTransfer.effectAllowed = 'move';
+    });
+    tile.addEventListener('dragend', () => {
+      tile.classList.remove('dragging');
+      document.querySelectorAll('.jtile.drop-before, .jtile.drop-after')
+        .forEach((t) => t.classList.remove('drop-before', 'drop-after'));
+    });
+    tile.addEventListener('dragover', (e) => {
+      if (!e.dataTransfer.types.includes('text/gallery-item')) return; // 拖的是外部文件,交给容器处理
+      e.preventDefault();
+      const rect = tile.getBoundingClientRect();
+      const before = (e.clientX - rect.left) < rect.width / 2;
+      tile.classList.toggle('drop-before', before);
+      tile.classList.toggle('drop-after', !before);
+    });
+    tile.addEventListener('dragleave', () => tile.classList.remove('drop-before', 'drop-after'));
+    tile.addEventListener('drop', async (e) => {
+      if (!e.dataTransfer.types.includes('text/gallery-item')) return;
+      e.preventDefault();
+      e.stopPropagation();
+      tile.classList.remove('drop-before', 'drop-after');
+      const draggedId = e.dataTransfer.getData('text/gallery-item');
+      const draggedSeries = e.dataTransfer.getData('text/gallery-series');
+      if (!draggedId || draggedId === id || draggedSeries !== series) return;
+      const rect = tile.getBoundingClientRect();
+      const before = (e.clientX - rect.left) < rect.width / 2;
+      await reorderGalleryItem(series, draggedId, id, before);
+    });
+  }
+
+  async function reorderGalleryItem(series, draggedId, targetId, before) {
+    const state = galleryState[series];
+    const order = state.order;
+    const fromIdx = order.indexOf(draggedId);
+    if (fromIdx === -1) return;
+    order.splice(fromIdx, 1);
+    let toIdx = order.indexOf(targetId);
+    if (toIdx === -1) toIdx = order.length;
+    if (!before) toIdx += 1;
+    order.splice(toIdx, 0, draggedId);
+    await idbSetRaw(galleryOrderKey(series), order.slice());
+    renderGallery(series);
+  }
+
+  async function removeGalleryItem(series, id) {
+    const state = galleryState[series];
+    state.items.delete(id);
+    state.order = state.order.filter((x) => x !== id);
+    await idbDeleteRaw(galleryItemKey(series, id));
+    await idbDeleteRaw(galleryItemCoverKey(series, id)).catch(() => {}); // 一并清掉封面(若有),不留孤立数据
+    await idbSetRaw(galleryOrderKey(series), state.order.slice());
+    renderGallery(series);
+  }
+
+  // 整个画廊容器也接受"从桌面拖文件进来"直接上传(而不只是内部瓦片排序)。
+  function bindGalleryContainerDnD(container, series) {
+    container.addEventListener('dragover', (e) => {
+      if (e.dataTransfer.types.includes('Files')) {
+        e.preventDefault();
+        container.classList.add('jgallery-dragover');
+      }
+    });
+    container.addEventListener('dragleave', () => container.classList.remove('jgallery-dragover'));
+    container.addEventListener('drop', async (e) => {
+      if (e.dataTransfer.types.includes('Files') && e.dataTransfer.files.length) {
+        e.preventDefault();
+        container.classList.remove('jgallery-dragover');
+        await handleGalleryFiles(series, e.dataTransfer.files);
+      }
+    });
+  }
+
+  let galleryInput = null;
+  let galleryActiveSeries = null;
+  function triggerGalleryPicker(series) {
+    galleryActiveSeries = series;
+    if (!galleryInput) {
+      galleryInput = document.createElement('input');
+      galleryInput.type = 'file';
+      galleryInput.accept = 'image/*,.heic,.heif,video/*';
+      galleryInput.multiple = true;
+      galleryInput.style.display = 'none';
+      document.body.appendChild(galleryInput);
+      galleryInput.addEventListener('change', async () => {
+        if (galleryActiveSeries && galleryInput.files.length) {
+          await handleGalleryFiles(galleryActiveSeries, galleryInput.files);
+        }
+        galleryInput.value = '';
+      });
+    }
+    galleryInput.click();
+  }
+
+  async function handleGalleryFiles(series, fileList) {
+    const files = Array.from(fileList).filter(
+      (f) => f.type.startsWith('image/') || f.type.startsWith('video/') || isHeic(f)
+    );
+    for (const file of files) {
+      await addGalleryFile(series, file);
+    }
+  }
+
+  // 上传单个文件:HEIC 转换、格式识别,完全复用主页 upload-slot 用的同一套逻辑。
+  async function addGalleryFile(series, file) {
+    const isVideo = file.type.startsWith('video/');
+    const isImage = !isVideo && (file.type.startsWith('image/') || isHeic(file));
+    if (!isVideo && !isImage) return;
+
+    const container = document.querySelector('.jgallery[data-series="' + series + '"]');
+    const addTile = container ? container.querySelector('.jtile-add') : null;
+    if (addTile) {
+      addTile.textContent = isHeic(file) ? 'Converting…' : 'Uploading…';
+    }
+    try {
+      let blob = file;
+      if (isImage) blob = await normalizeImage(file);
+      const ratio = await measureRatio(blob, isVideo);
+      const id = 'g' + Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+
+      galleryState[series].items.set(id, { blob, isVideo, ratio });
+      galleryState[series].order.push(id);
+
+      // 比例(ratio)一起存下来——以后每次打开网站不用再重新解码测量一遍,
+      // 这是"照片一多网站就卡"的一大来源:测量比例本身就需要把图片/视频完整解码一次。
+      await idbSetRaw(galleryItemKey(series, id), { blob, isVideo, ratio });
+      await idbSetRaw(galleryOrderKey(series), galleryState[series].order.slice());
+      renderGallery(series);
+    } catch (err) {
+      console.error('Gallery upload failed', series, err);
+      if (addTile) { addTile.textContent = 'Failed — retry'; setTimeout(() => renderGallery(series), 1600); }
+    }
+  }
+
+  // ── Projects 子导航:点击跳转到对应系列,滚动时自动高亮当前系列 ──
+  function bindProjectsSubnav() {
+    const links = document.querySelectorAll('.proj-subnav-link');
+    links.forEach((link) => {
+      link.addEventListener('click', (e) => {
+        e.preventDefault();
+        const el = document.getElementById('series-' + link.dataset.series);
+        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      });
+    });
+
+    // 子导航要粘在顶部导航栏(WEI/Projects/Journal/About)正下方,而不是
+    // viewport 顶部——顶部导航栏本身也是锁定的,两层导航叠在一起。用顶部
+    // 导航栏的实际渲染高度算出子导航该粘在哪,不写死数字,字体加载完成、
+    // 响应式变化都不会错位。
+    function syncSubnavOffset() {
+      const header = document.querySelector('header');
+      const subnav = document.getElementById('projects-subnav');
+      if (header && subnav) subnav.style.top = header.getBoundingClientRect().height + 'px';
+    }
+    syncSubnavOffset();
+    window.addEventListener('resize', debounce(syncSubnavOffset, 150));
+
+    // 用滚动位置判断当前区块,比 IntersectionObserver 的"是否相交"更可靠——
+    // 区块内容多少不一(有的系列刚起步只有一两张照片,区块很矮),仅凭"相交"
+    // 容易在矮区块上误判成下一个区块。改成:找顶部最贴近参考线(粘性子导航
+    // 下方一点)、且还没滚过头的那个区块。
+    const sections = Array.from(document.querySelectorAll('.proj-series'));
+    function updateActiveByScroll() {
+      const subnav = document.getElementById('projects-subnav');
+      const refY = (subnav ? subnav.getBoundingClientRect().bottom : 0) + 4;
+      // 已经滚到页面底部(哪怕最后一个区块很矮、顶部够不到参考线)时,直接判定最后一个区块为当前区块。
+      const atBottom = (window.innerHeight + window.scrollY) >= (document.documentElement.scrollHeight - 2);
+      let current = atBottom ? sections[sections.length - 1] : sections[0];
+      if (!atBottom) {
+        for (const s of sections) {
+          if (s.getBoundingClientRect().top <= refY) current = s;
+          else break;
+        }
+      }
+      if (current) {
+        links.forEach((l) => l.classList.toggle('active', l.dataset.series === current.dataset.series));
+      }
+    }
+    window.addEventListener('scroll', debounce(updateActiveByScroll, 60), { passive: true });
+    updateActiveByScroll();
+  }
+
+  async function initProjectsPage() {
+    for (const series of PROJECT_SERIES) {
+      galleryState[series] = { order: [], items: new Map(), expanded: false };
+      const order = (await idbGetRaw(galleryOrderKey(series))) || [];
+      for (const id of order) {
+        try {
+          const rec = await idbGetRaw(galleryItemKey(series, id));
+          if (!rec || !rec.blob) continue;
+          // 优先用已经存好的比例,不用每次打开网站都重新解码测量一遍
+          // (这是之前"网站变卡"的主要原因之一)。只有旧数据没存过比例时才现测,
+          // 顺便把测出来的结果补存回去,下次就不用再测了。
+          let ratio = rec.ratio;
+          if (!ratio) {
+            ratio = await measureRatio(rec.blob, rec.isVideo);
+            idbSetRaw(galleryItemKey(series, id), { blob: rec.blob, isVideo: rec.isVideo, ratio }).catch(() => {});
+          }
+          galleryState[series].items.set(id, { blob: rec.blob, isVideo: rec.isVideo, ratio });
+          galleryState[series].order.push(id);
+        } catch (err) { console.warn('Gallery item restore failed', series, id, err); }
+      }
+      const container = document.querySelector('.jgallery[data-series="' + series + '"]');
+      if (container) bindGalleryContainerDnD(container, series);
+      renderGallery(series);
+    }
+    window.addEventListener('resize', debounce(() => PROJECT_SERIES.forEach(renderGallery), 150));
+    bindProjectsSubnav();
+  }
+
+  // ── 页面切换:首页 / Projects,同一个文件内用显隐实现,不是真正跳转 ──
+  function showPage(pageId, opts) {
+    document.querySelectorAll('.page-view').forEach((p) => p.classList.remove('active'));
+    const target = document.getElementById('page-' + pageId);
+    if (target) target.classList.add('active');
+    window.scrollTo(0, 0);
+    if (pageId === 'projects') {
+      // 画廊在页面隐藏(display:none)时初始化过一次,那时容器宽度是0,
+      // 顺排网格算不出正确的行——切到这个页面、容器真正可见后必须重新排布一次。
+      requestAnimationFrame(() => PROJECT_SERIES.forEach(renderGallery));
+    }
+    if (opts && opts.series) {
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          const el = document.getElementById('series-' + opts.series);
+          if (el) el.scrollIntoView({ block: 'start' });
+        });
+      });
+    }
+  }
+
+  function bindPageNavTriggers() {
+    document.querySelectorAll('[data-goto-page]').forEach((el) => {
+      el.addEventListener('click', (e) => {
+        e.preventDefault();
+        showPage(el.dataset.gotoPage);
+      });
+    });
+    document.querySelectorAll('[data-goto-series]').forEach((el) => {
+      el.addEventListener('click', (e) => {
+        e.preventDefault();
+        showPage('projects', { series: el.dataset.gotoSeries });
+      });
+    });
+  }
+
+  // ── 首页可直接编辑的文字(比如 Latest observations 每张照片下方的说明)——
+  // 点一下就能改,失焦自动保存,存在和其它数据同一个 IndexedDB 里,刷新、
+  // 导出重开都保留修改。回车视为"确认修改"而不是换行,这些都是单行文字。 ──
+  function editableTextKey(key) { return 'text:' + key; }
+
+  async function initEditableTexts() {
+    const els = document.querySelectorAll('.editable-text');
+    for (const el of els) {
+      const key = el.dataset.editkey;
+      if (!key) continue;
+      try {
+        const saved = await idbGetRaw(editableTextKey(key));
+        if (typeof saved === 'string' && saved.trim()) el.textContent = saved;
+      } catch (err) { /* 读取失败就用默认文字,不影响使用 */ }
+
+      el.setAttribute('contenteditable', 'true');
+      el.addEventListener('blur', async () => {
+        const text = el.textContent.trim();
+        try { await idbSetRaw(editableTextKey(key), text); } catch (err) { console.warn('Save text failed', key, err); }
+      });
+      el.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') { e.preventDefault(); el.blur(); } // 单行文字,回车=确认,不换行
+      });
+    }
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+
+  // ── Bugs: hover/focus/tap to play, matching poster is shown at rest ──
+  // Standalone and independent of the legacy upload-slot init() above —
+  // targets the real video[data-mode="bugs"] elements directly, no
+  // wrapper element required.
+  function initBugsHoverPlay() {
+    document.querySelectorAll('video[data-mode="bugs"]').forEach((video) => {
+      const play = () => { video.play().catch(() => {}); };
+      const stop = () => {
+        video.pause();
+        // load() resets the element so the poster reappears — pause() +
+        // currentTime=0 alone would leave frame 0 of the video showing,
+        // not the actual poster image, once playback has started once.
+        video.load();
+      };
+      video.addEventListener('mouseenter', play);
+      video.addEventListener('mouseleave', stop);
+      video.addEventListener('focusin', play);
+      video.addEventListener('focusout', stop);
+      video.addEventListener('touchstart', () => {
+        if (video.paused) play(); else stop();
+      }, { passive: true });
+    });
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initBugsHoverPlay);
+  } else {
+    initBugsHoverPlay();
+  }
+
+  // ── Justified-row gallery layout (edge-to-edge, no ragged right edge) ──
+  // Standalone, independent of all the code above. Measures each real
+  // <img>/<video>'s true aspect ratio, then packs items into rows scaled
+  // to fill the container exactly. If this never runs (JS disabled/fails),
+  // .gallery-static's plain CSS `columns` layout still shows every item —
+  // just without the edge-to-edge alignment. Media visibility never
+  // depends on this script; only the precision of the alignment does.
+  function getRatio(el) {
+    // Bugs tiles use a fixed 1:1 frame (object-fit:contain + black
+    // letterboxing already set inline on these elements), matching the
+    // homepage — not each video's own real aspect ratio like every other
+    // gallery item. Otherwise a wider/shorter source clip like e72.mp4
+    // gets placed at its true (smaller) height instead of the same
+    // square size as bugs01/bugs02.
+    if (el.dataset.mode === 'bugs') return Promise.resolve(1);
+    return new Promise((resolve) => {
+      if (el.tagName === 'IMG') {
+        if (el.complete && el.naturalWidth) return resolve(el.naturalWidth / el.naturalHeight);
+        el.addEventListener('load', () => resolve(el.naturalWidth / (el.naturalHeight || 1)), { once: true });
+        el.addEventListener('error', () => resolve(1), { once: true });
+      } else {
+        if (el.readyState >= 1 && el.videoWidth) return resolve(el.videoWidth / el.videoHeight);
+        el.addEventListener('loadedmetadata', () => resolve(el.videoWidth / (el.videoHeight || 1)), { once: true });
+        el.addEventListener('error', () => resolve(1), { once: true });
+      }
+    });
+  }
+
+  // Same fixed target column width and cap the legacy jgallery masonry
+  // used (JGALLERY_COL_WIDTH / a max of 5 columns), applied here to our
+  // real static elements via the identical shortest-column algorithm.
+  const WATERFALL_COL_WIDTH = 260;
+  const WATERFALL_GAP = 3;
+  const WATERFALL_MAX_COLS = 5;
+
+  function computeWaterfallColumns(containerWidth) {
+    let cols = Math.max(1, Math.round((containerWidth + WATERFALL_GAP) / (WATERFALL_COL_WIDTH + WATERFALL_GAP)));
+    cols = Math.min(cols, WATERFALL_MAX_COLS);
+    const colWidth = (containerWidth - WATERFALL_GAP * (cols - 1)) / cols;
+    return { cols, colWidth };
+  }
+
+  async function layoutJustifiedGallery(container) {
+    // Undo any previous run's column wrappers first, so re-running (e.g.
+    // on resize, or on expand) re-measures cleanly instead of finding
+    // zero direct IMG/VIDEO children (they'd already be nested one level
+    // down inside .gallery-col from the prior run). Also restore any
+    // items a prior collapsed run hid via display:none.
+    container.querySelectorAll('.gallery-col').forEach((col) => {
+      while (col.firstChild) container.appendChild(col.firstChild);
+      col.remove();
+    });
+    Array.from(container.children).forEach((el) => {
+      if (el.tagName === 'IMG' || el.tagName === 'VIDEO') el.style.display = '';
+    });
+
+    const allItems = Array.from(container.children).filter((el) => el.tagName === 'IMG' || el.tagName === 'VIDEO');
+    if (!allItems.length) return;
+    // clientWidth includes this container's own left/right padding —
+    // using it directly would size columns wider than the actual content
+    // area they render inside, overflowing past the right edge.
+    const cs = getComputedStyle(container);
+    const containerWidth = container.clientWidth - parseFloat(cs.paddingLeft || 0) - parseFloat(cs.paddingRight || 0);
+    if (containerWidth <= 0) return; // e.g. inside a still-hidden page — !containerWidth alone misses negative values here
+
+    const { cols, colWidth } = computeWaterfallColumns(containerWidth);
+
+    // Collapsed = show only the first (cols * 2) items. Greedily placed
+    // into that many columns, that count always fills exactly two full
+    // rows with nothing cut mid-image — no pixel-height guessing needed.
+    const toggle = container.nextElementSibling;
+    const hasToggle = toggle && toggle.classList.contains('gallery-more-toggle');
+    const expanded = container.dataset.expanded === 'true';
+    const visibleCount = (hasToggle && !expanded) ? Math.min(cols * 2, allItems.length) : allItems.length;
+
+    const items = allItems.slice(0, visibleCount);
+    const overflowItems = allItems.slice(visibleCount);
+    overflowItems.forEach((el) => { el.style.display = 'none'; });
+
+    const ratios = await Promise.all(items.map(getRatio));
+    const colEls = [];
+    const colHeights = new Array(cols).fill(0);
+    for (let i = 0; i < cols; i++) {
+      const col = document.createElement('div');
+      col.className = 'gallery-col';
+      col.style.width = colWidth + 'px';
+      colEls.push(col);
+    }
+    items.forEach((item, idx) => {
+      const ratio = ratios[idx] || 1;
+      const h = colWidth / ratio;
+      const shortest = colHeights.indexOf(Math.min(...colHeights));
+      item.style.width = colWidth + 'px';
+      item.style.height = h + 'px';
+      colEls[shortest].appendChild(item); // moves the real element out of `container` into this column
+      colHeights[shortest] += h + WATERFALL_GAP;
+    });
+    colEls.forEach((col) => container.appendChild(col));
+    container.classList.add('gallery-waterfall');
+
+    if (hasToggle) {
+      if (expanded || visibleCount >= allItems.length) {
+        toggle.style.display = 'none';
+      } else {
+        toggle.style.display = 'block';
+        toggle.onclick = () => {
+          container.dataset.expanded = 'true';
+          layoutJustifiedGallery(container); // re-run once, now over every item — one continuous layout
+        };
+      }
+    }
+  }
+
+  function initJustifiedGalleries() {
+    document.querySelectorAll('.gallery-static').forEach(layoutJustifiedGallery);
+  }
+
+  function debounceLocal(fn, ms) {
+    let t = null;
+    return (...args) => { clearTimeout(t); t = setTimeout(() => fn(...args), ms); };
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initJustifiedGalleries);
+  } else {
+    initJustifiedGalleries();
+  }
+  window.addEventListener('resize', debounceLocal(initJustifiedGalleries, 150));
+
+  // Projects is a `display:none` page-view until its "active" class is
+  // added — its galleries have zero width at load, so the initial layout
+  // call above silently skips them. Watch for the page actually becoming
+  // visible and lay them out then, without touching showPage() itself.
+  const pageProjectsEl = document.getElementById('page-projects');
+  if (pageProjectsEl) {
+    const projectsVisibilityObserver = new MutationObserver(() => {
+      if (pageProjectsEl.classList.contains('active')) {
+        pageProjectsEl.querySelectorAll('.gallery-static').forEach(layoutJustifiedGallery);
+      }
+    });
+    projectsVisibilityObserver.observe(pageProjectsEl, { attributes: true, attributeFilter: ['class'] });
+  }
+})();
+</script>
+
+</body>
+</html>

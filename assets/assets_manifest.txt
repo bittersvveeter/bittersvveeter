@@ -1,0 +1,141 @@
+./.DS_Store
+./assets_manifest.txt
+./Belfast - the layers others miss in this city/.DS_Store
+./Belfast - the layers others miss in this city/images/.DS_Store
+./Belfast - the layers others miss in this city/images/Belfast01.jpg
+./Belfast - the layers others miss in this city/images/Belfast02.jpg
+./Belfast - the layers others miss in this city/images/Belfast03.jpg
+./Belfast - the layers others miss in this city/images/Belfast04.jpg
+./Belfast - the layers others miss in this city/images/Belfast05.jpg
+./Belfast - the layers others miss in this city/images/Belfast06.jpg
+./Belfast - the layers others miss in this city/images/Belfast07.jpg
+./Belfast - the layers others miss in this city/images/Belfast08.jpg
+./Belfast - the layers others miss in this city/images/Belfast09.jpg
+./Belfast - the layers others miss in this city/images/Belfast10.jpg
+./Belfast - the layers others miss in this city/images/Belfast11.jpg
+./Belfast - the layers others miss in this city/images/Belfast12.jpg
+./Belfast - the layers others miss in this city/images/Belfast13.jpg
+./Belfast - the layers others miss in this city/images/Belfast14.jpg
+./Belfast - the layers others miss in this city/images/Belfast15.jpg
+./Belfast - the layers others miss in this city/images/Belfast16.jpg
+./Belfast - the layers others miss in this city/images/Belfast17.jpg
+./Belfast - the layers others miss in this city/images/Belfast18.jpg
+./Belfast - the layers others miss in this city/images/Belfast19.jpg
+./Belfast - the layers others miss in this city/images/Belfast20.jpg
+./Belfast - the layers others miss in this city/images/Belfast21.jpg
+./Belfast - the layers others miss in this city/images/Belfast22.HEIC
+./Belfast - the layers others miss in this city/images/Belfast23.HEIC
+./Belfast - the layers others miss in this city/images/Belfast24.HEIC
+./Belfast - the layers others miss in this city/images/Belfast25.HEIC
+./Belfast - the layers others miss in this city/videos/.DS_Store
+./Belfast - the layers others miss in this city/videos/Belfast01.mov
+./Belfast - the layers others miss in this city/videos/Belfast02.mov
+./bugs/.DS_Store
+./bugs/images/.DS_Store
+./bugs/images/bug01-cover.jpg
+./bugs/images/bug02-cover.jpg
+./bugs/images/E72-cover.jpg
+./bugs/just in case/bf8d72e0f2f44e414fd6050ef8bff5be.jpg
+./bugs/videos/bugs01.mp4
+./bugs/videos/bugs02.mp4
+./bugs/videos/e72.mp4
+./featured/.DS_Store
+./featured/belfast1.mov
+./featured/belfast2.HEIC
+./featured/hero.mp4
+./featured/interlude.MP4
+./featured/journal.HEIC
+./featured/latest1.mov
+./featured/latest2.jpg
+./featured/latest3.jpg
+./featured/latest4.jpg
+./featured/palette1.mov
+./featured/palette2.mov
+./featured/palette3.mov
+./Interlude - pausing for the present/.DS_Store
+./Interlude - pausing for the present/images/.DS_Store
+./Interlude - pausing for the present/images/Interlude01.jpg
+./Interlude - pausing for the present/images/Interlude02.jpg
+./Interlude - pausing for the present/images/Interlude03.HEIC
+./Interlude - pausing for the present/images/Interlude04.jpg
+./Interlude - pausing for the present/images/Interlude05.jpg
+./Interlude - pausing for the present/images/Interlude06.jpg
+./Interlude - pausing for the present/images/Interlude07.jpg
+./Interlude - pausing for the present/images/Interlude08.jpg
+./Interlude - pausing for the present/videos/.DS_Store
+./Interlude - pausing for the present/videos/1-1.MP4
+./Interlude - pausing for the present/videos/10-1.MP4
+./Interlude - pausing for the present/videos/11-1.MP4
+./Interlude - pausing for the present/videos/12-1.MP4
+./Interlude - pausing for the present/videos/2-1.MP4
+./Interlude - pausing for the present/videos/4-1.MP4
+./Interlude - pausing for the present/videos/5-1.MP4
+./Interlude - pausing for the present/videos/6-1.MP4
+./Interlude - pausing for the present/videos/7-1.MP4
+./Interlude - pausing for the present/videos/8-1.MP4
+./Interlude - pausing for the present/videos/Interlude01.mov
+./Interlude - pausing for the present/videos/Interlude02.mov
+./Interlude - pausing for the present/videos/Interlude03.mov
+./Palette - colours of the everyday/.DS_Store
+./Palette - colours of the everyday/images/.DS_Store
+./Palette - colours of the everyday/images/Palette01.jpg
+./Palette - colours of the everyday/images/Palette02.HEIC
+./Palette - colours of the everyday/images/Palette03.HEIC
+./Palette - colours of the everyday/images/Palette04.HEIC
+./Palette - colours of the everyday/images/Palette05.HEIC
+./Palette - colours of the everyday/images/Palette06.HEIC
+./Palette - colours of the everyday/images/Palette07.HEIC
+./Palette - colours of the everyday/images/Palette08.HEIC
+./Palette - colours of the everyday/images/Palette09.jpg
+./Palette - colours of the everyday/images/Palette10.jpg
+./Palette - colours of the everyday/images/Palette11.heic
+./Palette - colours of the everyday/images/Palette12.jpg
+./Palette - colours of the everyday/images/Palette13.heic
+./Palette - colours of the everyday/images/Palette14.jpg
+./Palette - colours of the everyday/images/Palette15.jpg
+./Palette - colours of the everyday/images/Palette16.jpg
+./Palette - colours of the everyday/images/Palette17.jpg
+./Palette - colours of the everyday/images/Palette18.jpg
+./Palette - colours of the everyday/images/Palette19.jpg
+./Palette - colours of the everyday/images/Palette20.jpg
+./Palette - colours of the everyday/images/Palette21.jpg
+./Palette - colours of the everyday/images/Palette22.jpg
+./Palette - colours of the everyday/images/Palette23.jpg
+./Palette - colours of the everyday/images/Palette24.jpg
+./Palette - colours of the everyday/images/Palette25.jpg
+./Palette - colours of the everyday/images/Palette26.jpg
+./Palette - colours of the everyday/images/Palette27.jpg
+./Palette - colours of the everyday/images/Palette28.jpg
+./Palette - colours of the everyday/images/Palette29.jpg
+./Palette - colours of the everyday/images/Palette30.HEIC
+./Palette - colours of the everyday/videos/.DS_Store
+./Palette - colours of the everyday/videos/Palette01.mov
+./Palette - colours of the everyday/videos/Palette02.mov
+./Palette - colours of the everyday/videos/Palette03.mov
+./Palette - colours of the everyday/videos/Palette04.mov
+./Palette - colours of the everyday/videos/Palette05.mov
+./Palette - colours of the everyday/videos/Palette06.mov
+./Palette - colours of the everyday/videos/Palette07.mov
+./Palette - colours of the everyday/videos/Palette08.mov
+./Palette - colours of the everyday/videos/Palette09.mov
+./Palette - colours of the everyday/videos/Palette10.mov
+./Palette - colours of the everyday/videos/Palette11.mov
+./Palette - colours of the everyday/videos/Palette12.mov
+./Palette - colours of the everyday/videos/Palette13.mov
+./Palette - colours of the everyday/videos/Palette14.mov
+./Palette - colours of the everyday/videos/Palette15.mov
+./Palette - colours of the everyday/videos/Palette16.mov
+./Palette - colours of the everyday/videos/Palette17.mov
+./Palette - colours of the everyday/videos/Palette18.mov
+./Palette - colours of the everyday/videos/Palette19.mov
+./Palette - colours of the everyday/videos/Palette20.mov
+./Palette - colours of the everyday/videos/Palette21.mov
+./Palette - colours of the everyday/videos/Palette22.mov
+./Palette - colours of the everyday/videos/Palette23.mov
+./Palette - colours of the everyday/videos/Palette24.mov
+./Palette - colours of the everyday/videos/Palette25.mov
+./Palette - colours of the everyday/videos/Palette26.mov
+./Palette - colours of the everyday/videos/Palette27.mov
+./Palette - colours of the everyday/videos/Palette28.mov
+./Palette - colours of the everyday/videos/Palette29.mov
+./Palette - colours of the everyday/videos/Palette30.mov
