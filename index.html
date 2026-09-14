@@ -2515,7 +2515,6 @@
         if (typeof saved === 'string' && saved.trim()) el.textContent = saved;
       } catch (err) { /* 读取失败就用默认文字,不影响使用 */ }
 
-      el.setAttribute('contenteditable', 'true');
       el.addEventListener('blur', async () => {
         const text = el.textContent.trim();
         try { await idbSetRaw(editableTextKey(key), text); } catch (err) { console.warn('Save text failed', key, err); }
